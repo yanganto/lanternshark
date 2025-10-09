@@ -13,6 +13,8 @@ authors = ["PRO-2684"]
 
 [dependencies]
 argh = { version = "0.1.13", optional = true, default-features = false, features = ["help"] }
+chrono = { version = "0.4.42", default-features = false, features = ["alloc", "std"] }
+num_enum = "0.7.4"
 pcap = "2.3.0"
 
 [[bin]]
@@ -27,6 +29,9 @@ debug = false     # Disable debug information in release builds.
 strip = true      # Automatically strip symbols from the binary.
 lto = true        # Enable link-time optimization.
 codegen-units = 1 # Set the number of codegen units to 1.
+
+[dev-dependencies]
+libc = "0.2.176"
 
 [package.metadata.binstall]
 pkg-url = "{ repo }/releases/download/v{ version }/{ name }-v{ version }-{ target }{ archive-suffix }"

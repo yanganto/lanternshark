@@ -5,6 +5,9 @@
 #![deny(missing_docs)]
 #![warn(clippy::all, clippy::nursery, clippy::pedantic, clippy::cargo)]
 
+mod ethernet;
+pub use ethernet::EthernetPacket;
+
 use pcap::{ConnectionStatus, Device, Error};
 
 /// Describe the given device.

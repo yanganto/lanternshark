@@ -33,7 +33,7 @@ TODO
 
 ## 📖 Usage
 
-TODO
+Note: You may need to [configure with `setcap`](https://github.com/rust-pcap/pcap?tab=readme-ov-file#linux), if you want to capture without root.
 
 ## 🎉 Credits
 

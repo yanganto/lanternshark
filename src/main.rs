@@ -1,7 +1,8 @@
 #![warn(clippy::all, clippy::nursery, clippy::pedantic, clippy::cargo)]
 
 use argh::FromArgs;
-use sniffer::{describe_device, find_device};
+use pcap::{Activated, Capture as Capturing, Device};
+use sniffer::{describe_device, find_device, EthernetPacket};
 
 #[derive(FromArgs, PartialEq, Debug)]
 /// A simple network traffic sniffer and analyzer.
@@ -36,9 +37,9 @@ struct List {}
 /// Load and inspect packets from a file.
 #[argh(subcommand, name = "load")]
 struct Load {
-    #[argh(switch)]
-    /// whether to fooey
-    fooey: bool,
+    #[argh(positional)]
+    /// the file to load from
+    file: String,
 }
 
 fn main() -> Result<(), pcap::Error> {
@@ -50,11 +51,13 @@ fn main() -> Result<(), pcap::Error> {
             for line in describe_device(&device) {
                 println!("  {line}");
             }
-            println!("TODO");
+            println!("---");
+            let cap = device.open()?;
+            handle_packets(cap);
         }
         SubCommands::List(_) => {
             println!("Available devices:");
-            let devices = pcap::Device::list()?;
+            let devices = Device::list()?;
             for device in devices {
                 println!("---");
                 for line in describe_device(&device) {
@@ -62,9 +65,23 @@ fn main() -> Result<(), pcap::Error> {
                 }
             }
         }
-        SubCommands::Load(_load) => {
-            println!("TODO");
+        SubCommands::Load(load) => {
+            let file = load.file;
+            println!("Loading from file: {file}");
+            println!("---");
+            let cap = Capturing::from_file(file)?;
+            handle_packets(cap);
         }
     }
     Ok(())
+}
+
+fn handle_packets<T: Activated>(mut capture: Capturing<T>) {
+    while let Ok(packet) = capture.next_packet() {
+        let ethernet_packet = EthernetPacket::try_from(&packet);
+        match ethernet_packet {
+            Ok(eth_pkt) => println!("{eth_pkt}"),
+            Err(e) => eprintln!("Failed to parse Ethernet packet: {e:?}"),
+        }
+    }
 }
