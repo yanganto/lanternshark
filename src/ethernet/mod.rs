@@ -1,7 +1,16 @@
 //! Ethernet packet parsing.
 
+mod arp;
+mod ipv4;
+mod ipv6;
+mod rarp;
+
+use arp::ArpPacket;
+use ipv4::Ipv4Packet;
+use ipv6::Ipv6Packet;
+use rarp::RarpPacket;
+
 use chrono::DateTime;
-use num_enum::TryFromPrimitive;
 use std::fmt;
 
 /// An Ethernet packet.
@@ -13,38 +22,31 @@ pub struct EthernetPacket<'a> {
     pub destination: MacAddress,
     /// The source MAC address.
     pub source: MacAddress,
-    /// The EtherType of the packet.
-    pub ethertype: EtherType,
-    /// The data part of the packet.
-    pub data: &'a [u8],
+    /// The inner packet type.
+    pub inner: EtherTypes,
+    /// The raw data part of the packet.
+    pub raw_data: &'a [u8],
 }
 
 /// A MAC address.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MacAddress([u8; 6]);
 
-/// Available EtherTypes.
-#[repr(u16)]
+/// Available inner packet types for Ethernet frames.
 #[non_exhaustive]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, TryFromPrimitive)]
-pub enum EtherType {
-    /// IPv4
-    Ipv4 = 0x0800,
-    /// ARP
-    Arp = 0x0806,
-    /// RARP
-    Rarp = 0x8035,
-    /// IPv6
-    Ipv6 = 0x86DD,
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum EtherTypes {
+    /// IPv4 (0x0800)
+    Ipv4(Ipv4Packet),
+    /// ARP (0x0806)
+    Arp(ArpPacket),
+    /// RARP (0x8035)
+    Rarp(RarpPacket),
+    /// IPv6 (0x86DD)
+    Ipv6(Ipv6Packet),
+    /// Unknown or unsupported EtherType
+    Unknown(u16),
     // TODO: add more EtherTypes as needed
-    // /// Wake-on-LAN
-    // WakeOnLan = 0x0842,
-    // /// VLAN-tagged frame (IEEE 802.1Q)
-    // VlanTaggedFrame = 0x8100,
-    // /// Provider Bridging (IEEE 802.1ad) and Shortest Path Bridging IEEE 802.1aq
-    // ProviderBridging = 0x88A8,
-    // /// Jumbo Frames
-    // JumboFrames = 0x8870,
 }
 
 /// Possible errors when parsing an Ethernet packet.
@@ -54,8 +56,6 @@ pub enum ParseEthernetError {
     TimestampOutOfRange,
     /// The packet is too short to be a valid Ethernet frame.
     PacketTooShort,
-    /// The EtherType is unrecognized.
-    UnknownEtherType(u16),
 }
 
 impl<'a> TryFrom<&pcap::Packet<'a>> for EthernetPacket<'a> {
@@ -75,16 +75,20 @@ impl<'a> TryFrom<&pcap::Packet<'a>> for EthernetPacket<'a> {
         let destination = MacAddress(header[0..6].try_into().unwrap()); // safe unwrap due to length check above
         let source = MacAddress(header[6..12].try_into().unwrap()); // safe unwrap due to length check above
         let ethertype_raw = u16::from_be_bytes([header[12], header[13]]);
-        let ethertype = ethertype_raw
-            .try_into()
-            .map_err(|_| ParseEthernetError::UnknownEtherType(ethertype_raw))?;
+        let ethertype = match ethertype_raw {
+            0x0800 => EtherTypes::Ipv4(Ipv4Packet::new(data)), // Placeholder for actual IPv4 packet parsing
+            0x0806 => EtherTypes::Arp(ArpPacket::new(data)),   // Placeholder for actual ARP packet parsing
+            0x8035 => EtherTypes::Rarp(RarpPacket::new(data)), // Placeholder for actual RARP packet parsing
+            0x86DD => EtherTypes::Ipv6(Ipv6Packet::new(data)), // Placeholder for actual IPv6 packet parsing
+            _ => EtherTypes::Unknown(ethertype_raw),
+        };
 
         Ok(Self {
             timestamp,
             destination,
             source,
-            ethertype,
-            data,
+            inner: ethertype,
+            raw_data: data,
         })
     }
 }
@@ -95,8 +99,8 @@ impl<'a> fmt::Display for EthernetPacket<'a> {
             timestamp,
             destination,
             source,
-            ethertype,
-            data,
+            inner: ethertype,
+            raw_data: data,
         } = self;
         write!(
             f,
@@ -161,7 +165,7 @@ mod tests {
             eth_packet.source,
             MacAddress([0x00, 0x1a, 0x2b, 0x3c, 0x4d, 0x5e])
         );
-        assert_eq!(eth_packet.ethertype, EtherType::Ipv4);
-        assert_eq!(eth_packet.data, &DATA[14..]);
+        assert!(matches!(eth_packet.inner, EtherTypes::Ipv4(_)));
+        assert_eq!(eth_packet.raw_data, &DATA[14..]);
     }
 }

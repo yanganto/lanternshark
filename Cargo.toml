@@ -14,7 +14,6 @@ authors = ["PRO-2684"]
 [dependencies]
 argh = { version = "0.1.13", optional = true, default-features = false, features = ["help"] }
 chrono = { version = "0.4.42", default-features = false, features = ["alloc", "std"] }
-num_enum = "0.7.4"
 pcap = "2.3.0"
 
 [[bin]]
