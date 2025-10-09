@@ -19,7 +19,7 @@ enum SubCommands {
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
-/// Capture packets from a device.
+/// Capture and inspect packets from a device.
 #[argh(subcommand, name = "capture")]
 struct Capture {
     #[argh(option, short = 'd')]
@@ -33,7 +33,7 @@ struct Capture {
 struct List {}
 
 #[derive(FromArgs, PartialEq, Debug)]
-/// Load packets from a file.
+/// Load and inspect packets from a file.
 #[argh(subcommand, name = "load")]
 struct Load {
     #[argh(switch)]

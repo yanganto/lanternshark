@@ -5,7 +5,7 @@
 #![deny(missing_docs)]
 #![warn(clippy::all, clippy::nursery, clippy::pedantic, clippy::cargo)]
 
-use pcap::{ConnectionStatus, Device};
+use pcap::{ConnectionStatus, Device, Error};
 
 /// Describe the given device.
 pub fn describe_device(device: &Device) -> Vec<String> {
@@ -36,11 +36,10 @@ pub fn describe_device(device: &Device) -> Vec<String> {
     result
 }
 
-/// Find an available device. If `name_or_addr` is `None`, return the first [`Connected`](ConnectionStatus::Connected) device.
-pub fn find_device(name_or_addr: Option<&str>) -> Result<Device, pcap::Error> {
-    let devices = Device::list()?;
+/// Find an available device. If `name_or_addr` is `None`, return the default device.
+pub fn find_device(name_or_addr: Option<&str>) -> Result<Device, Error> {
     let device = if let Some(name_or_addr) = name_or_addr {
-        devices
+        Device::list()?
             .into_iter()
             .find(|d| {
                 d.name == name_or_addr
@@ -48,12 +47,9 @@ pub fn find_device(name_or_addr: Option<&str>) -> Result<Device, pcap::Error> {
                         .iter()
                         .any(|addr| addr.addr.to_string() == name_or_addr)
             })
-            .ok_or_else(|| pcap::Error::PcapError("Specified device not found".to_string()))?
+            .ok_or_else(|| Error::PcapError("Specified device not found".to_string()))?
     } else {
-        devices
-            .into_iter()
-            .find(|d| d.flags.connection_status == ConnectionStatus::Connected)
-            .ok_or_else(|| pcap::Error::PcapError("No connected device found".to_string()))?
+        Device::lookup()?.ok_or_else(|| Error::PcapError("No default device found".to_string()))?
     };
     Ok(device)
 }
