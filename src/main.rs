@@ -2,7 +2,7 @@
 
 use argh::FromArgs;
 use pcap::{Activated, Capture as Capturing, Device};
-use sniffer::{describe_device, find_device, EthernetPacket};
+use sniffer::{EthernetPacket, describe_device, find_device};
 
 #[derive(FromArgs, PartialEq, Debug)]
 /// A simple network traffic sniffer and analyzer.

@@ -27,9 +27,16 @@ Refer to [`pcap` docs](https://github.com/rust-pcap/pcap?tab=readme-ov-file#inst
 cargo install sniffer
 ```
 
-## 💡 Examples
+## 🌲 Hierarchy
 
-TODO
+[`Packet`](pcap::Packet):
+
+- [`EthernetPacket`]
+    - [`Ipv4Packet`]
+    - [`ArpPacket`]
+    - [`RarpPacket`]
+    - [`Ipv6Packet`]
+    - [`UnknownEthernetPacket`]
 
 ## 📖 Usage
 
