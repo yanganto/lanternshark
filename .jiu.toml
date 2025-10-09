@@ -1,4 +1,4 @@
-description = "\u001b[1;36msniffer\u001b[22;39m: My traffic sniffer for the course "Software and System Security""
+description = "\u001b[1;36msniffer\u001b[22;39m: My traffic sniffer for the course \"Software and System Security\""
 
 [[recipes]]
 names = ["build", "b"]

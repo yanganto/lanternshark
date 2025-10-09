@@ -3,7 +3,7 @@ name = "sniffer"
 version = "0.1.0"
 edition = "2024"
 readme = "README.md"
-description = "My traffic sniffer for the course "Software and System Security""
+description = "My traffic sniffer for the course \"Software and System Security\""
 keywords = []
 categories = []
 include = ["src", "README.md", "LICENSE"]
@@ -12,6 +12,7 @@ license = "MIT"
 authors = ["PRO-2684"]
 
 [dependencies]
+pcap = "2.3.0"
 
 [[bin]]
 name = "sniffer"

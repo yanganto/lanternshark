@@ -1,10 +1,11 @@
 #![warn(clippy::all, clippy::nursery, clippy::pedantic, clippy::cargo)]
 
-use sniffer::add;
-
 fn main() {
-    let left = 2;
-    let right = 2;
-    let result = add(left, right);
-    println!("The sum of {left} and {right} is {result}");
+    // list all of the devices pcap tells us are available
+    for device in pcap::Device::list().expect("device lookup failed") {
+        println!("Found device! {device:?}");
+
+        // now you can create a Capture with this Device if you want.
+        // see example/easylisten.rs for how
+    }
 }
