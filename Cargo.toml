@@ -12,17 +12,24 @@ license = "MIT"
 authors = ["PRO-2684"]
 
 [dependencies]
-argh = { version = "0.1.13", optional = true, default-features = false, features = ["help"] }
-chrono = { version = "0.4.42", default-features = false, features = ["alloc", "std"] }
+argh = { version = "0.1.13", optional = true, default-features = false, features = [
+    "help",
+] }
+chrono = { version = "0.4.42", default-features = false, features = [
+    "alloc",
+    "std",
+] }
+crossterm = { version = "0.29.0", optional = true }
 num_enum = "0.7.4"
 pcap = "2.3.0"
+ratatui = { version = "0.29.0", optional = true }
 
 [[bin]]
 name = "sniffer"
 required-features = ["cli"]
 
 [features]
-cli = ["argh"]
+cli = ["argh", "crossterm", "ratatui"]
 
 [profile.release]
 debug = false     # Disable debug information in release builds.

@@ -2,9 +2,11 @@
 #![deny(missing_docs)]
 #![warn(clippy::all, clippy::nursery, clippy::pedantic, clippy::cargo)]
 
-pub mod ethernet;
 #[cfg(feature = "cli")]
 pub mod app;
+#[cfg(feature = "cli")]
+pub mod cli;
+pub mod ethernet;
 
 use pcap::{ConnectionStatus, Device, Error};
 

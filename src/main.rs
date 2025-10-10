@@ -1,58 +1,25 @@
 #![warn(clippy::all, clippy::nursery, clippy::pedantic, clippy::cargo)]
 
-use argh::FromArgs;
-use pcap::{Activated, Capture as Capturing, Device};
-use sniffer::{EthernetPacket, describe_device, find_device};
-
-#[derive(FromArgs, PartialEq, Debug)]
-/// A simple network traffic sniffer and analyzer.
-struct App {
-    #[argh(subcommand)]
-    subcommand: SubCommands,
-}
-
-#[derive(FromArgs, PartialEq, Debug)]
-#[argh(subcommand)]
-enum SubCommands {
-    Capture(Capture),
-    List(List),
-    Load(Load),
-}
-
-#[derive(FromArgs, PartialEq, Debug)]
-/// Capture and inspect packets from a device.
-#[argh(subcommand, name = "capture")]
-struct Capture {
-    #[argh(option, short = 'd')]
-    /// the device to capture from, can be specified with either the address or the name; if not specified, the first device will be used
-    device: Option<String>,
-}
-
-#[derive(FromArgs, PartialEq, Debug)]
-/// List available devices.
-#[argh(subcommand, name = "list")]
-struct List {}
-
-#[derive(FromArgs, PartialEq, Debug)]
-/// Load and inspect packets from a file.
-#[argh(subcommand, name = "load")]
-struct Load {
-    #[argh(positional)]
-    /// the file to load from
-    file: String,
-}
+use pcap::{Capture as Capturing, Device};
+use sniffer::{
+    app::run,
+    cli::{Cli, SubCommands},
+    describe_device,
+    find_device,
+};
 
 fn main() -> Result<(), pcap::Error> {
-    let app: App = argh::from_env();
-    match app.subcommand {
+    let cli: Cli = argh::from_env();
+    match cli.subcommand {
         SubCommands::Capture(capture) => {
             let device = find_device(capture.device.as_deref())?;
             println!("Capturing on device:");
             for line in describe_device(&device) {
                 println!("  {line}");
             }
-            let cap = device.open()?;
-            handle_packets(cap);
+            let terminal = ratatui::init();
+            let capture = device.open()?;
+            run(terminal, capture);
         }
         SubCommands::List(_) => {
             println!("Available devices:");
@@ -67,20 +34,10 @@ fn main() -> Result<(), pcap::Error> {
         SubCommands::Load(load) => {
             let file = load.file;
             println!("Loading from file: {file}");
-            let cap = Capturing::from_file(file)?;
-            handle_packets(cap);
+            let terminal = ratatui::init();
+            let capture = Capturing::from_file(file)?;
+            run(terminal, capture);
         }
     }
     Ok(())
-}
-
-fn handle_packets<T: Activated>(mut capture: Capturing<T>) {
-    while let Ok(packet) = capture.next_packet() {
-        println!("---");
-        let ethernet_packet = EthernetPacket::try_from(&packet);
-        match ethernet_packet {
-            Ok(eth_pkt) => println!("{eth_pkt}"),
-            Err(e) => eprintln!("Failed to parse Ethernet packet: {e:?}"),
-        }
-    }
 }

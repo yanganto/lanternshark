@@ -36,6 +36,6 @@ Note: You may need to [configure with `setcap`](https://github.com/rust-pcap/pca
 ## 🎉 Credits
 
 - [`pcap`](https://github.com/rust-pcap/pcap) for interacting with `libpcap`
-- [`argh`](https://github.com/google/argh) for commandline argument parsing
-<!-- - [`ratatui`](https://github.com/ratatui/ratatui) for TUI -->
+- [`argh`](https://github.com/google/argh) for command line argument parsing
+- [`ratatui`](https://github.com/ratatui/ratatui) for TUI
 <!-- - [`wirefilter`](https://github.com/cloudflare/wirefilter) for filtering packets -->
