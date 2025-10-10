@@ -1,27 +1,27 @@
-# sniffer
+# termshark
 
-[![GitHub License](https://img.shields.io/github/license/PRO-2684/sniffer?logo=opensourceinitiative)](https://github.com/PRO-2684/sniffer/blob/main/LICENSE)
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/PRO-2684/sniffer/release.yml?logo=githubactions)](https://github.com/PRO-2684/sniffer/blob/main/.github/workflows/release.yml)
-[![GitHub Release](https://img.shields.io/github/v/release/PRO-2684/sniffer?logo=githubactions)](https://github.com/PRO-2684/sniffer/releases)
-[![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/PRO-2684/sniffer/total?logo=github)](https://github.com/PRO-2684/sniffer/releases)
+[![GitHub License](https://img.shields.io/github/license/PRO-2684/termshark?logo=opensourceinitiative)](https://github.com/PRO-2684/termshark/blob/main/LICENSE)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/PRO-2684/termshark/release.yml?logo=githubactions)](https://github.com/PRO-2684/termshark/blob/main/.github/workflows/release.yml)
+[![GitHub Release](https://img.shields.io/github/v/release/PRO-2684/termshark?logo=githubactions)](https://github.com/PRO-2684/termshark/releases)
+[![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/PRO-2684/termshark/total?logo=github)](https://github.com/PRO-2684/termshark/releases)
 
-My traffic sniffer for the course "Software and System Security"。
+WireShark in the terminal. Primarily as my hand-in for the course "Software and System Security".
 
 ## 📥 Installation
 
 ### Downloading from Releases
 
-Navigate to the [Releases page](https://github.com/PRO-2684/sniffer/releases) and download respective binary for your platform. Make sure to give it execute permissions.
+Navigate to the [Releases page](https://github.com/PRO-2684/termshark/releases) and download respective binary for your platform. Make sure to give it execute permissions.
 
 ### Compiling from Source
 
 Refer to [`pcap` docs](https://github.com/rust-pcap/pcap?tab=readme-ov-file#installing-dependencies) for requirements on dependencies.
 
 ```shell
-git clone https://github.com/PRO-2684/Sniffer.git
-cd Sniffer
+git clone https://github.com/PRO-2684/termshark.git
+cd termshark
 cargo build --release
-# The binary will be available at ./target/release/sniffer
+# The binary will be available at ./target/release/termshark
 ```
 
 ## 📖 Usage
@@ -29,7 +29,7 @@ cargo build --release
 ### ▶️ Running TUI
 
 ```bash
-sudo ./sniffer capture # To capture from default device
+sudo ./termshark capture # To capture from default device
 ```
 
 Alternatively, you can [configure with `setcap`](https://github.com/rust-pcap/pcap?tab=readme-ov-file#linux), if you want to capture without root.

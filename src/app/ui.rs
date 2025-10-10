@@ -281,8 +281,10 @@ fn format_hex_dump(data: &[u8]) -> Text<'static> {
 
 /// Render the help bar.
 fn render_help(frame: &mut Frame, area: Rect) {
+    const APP_NAME: &'static str = env!("CARGO_PKG_NAME");
+    const VERSION: &'static str = env!("CARGO_PKG_VERSION");
     let help_text = Line::from(vec![
-        Span::styled("termshark", Style::default().fg(Color::Cyan)),
+        Span::styled(format!("{APP_NAME}@{VERSION}"), Style::default().fg(Color::Cyan)),
         Span::styled(" | ", Style::default().fg(Color::DarkGray)),
         Span::styled("Press ", Style::default().fg(Color::DarkGray)),
         Span::styled("q", Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),

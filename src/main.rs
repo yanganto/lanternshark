@@ -1,7 +1,7 @@
 #![warn(clippy::all, clippy::nursery, clippy::pedantic, clippy::cargo)]
 
 use pcap::{Capture as Capturing, Device};
-use sniffer::{
+use termshark::{
     app::run,
     cli::{Cli, SubCommands},
     describe_device,

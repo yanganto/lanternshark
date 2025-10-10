@@ -725,19 +725,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 
 [[package]]
-name = "sniffer"
-version = "0.1.0"
-dependencies = [
- "argh",
- "chrono",
- "crossterm 0.29.0",
- "libc",
- "num_enum",
- "pcap",
- "ratatui",
-]
-
-[[package]]
 name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -780,6 +767,19 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
+]
+
+[[package]]
+name = "termshark"
+version = "0.1.0"
+dependencies = [
+ "argh",
+ "chrono",
+ "crossterm 0.29.0",
+ "libc",
+ "num_enum",
+ "pcap",
+ "ratatui",
 ]
 
 [[package]]

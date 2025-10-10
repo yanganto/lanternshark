@@ -2,7 +2,7 @@
 
 use argh::FromArgs;
 
-/// A simple network traffic sniffer and analyzer.
+/// WireShark in the terminal.
 #[derive(FromArgs, PartialEq, Debug)]
 pub struct Cli {
     /// the subcommand to run
