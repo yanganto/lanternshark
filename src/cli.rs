@@ -29,6 +29,9 @@ pub struct Capture {
     /// the device to capture from, can be specified with either the address or the name; if not specified, the first device will be used
     #[argh(option, short = 'd')]
     pub device: Option<String>,
+    /// the file to save captured packets to
+    #[argh(option, short = 's')]
+    pub save_file: Option<String>,
 }
 
 /// List available devices.

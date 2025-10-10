@@ -11,14 +11,14 @@ use termshark::{
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli: Cli = argh::from_env();
     match cli.subcommand {
-        SubCommands::Capture(capture) => {
-            let device = find_device(capture.device.as_deref())?;
+        SubCommands::Capture(capture_args) => {
+            let device = find_device(capture_args.device.as_deref())?;
             println!("Capturing on device:");
             for line in describe_device(&device) {
                 println!("  {line}");
             }
             let capture = device.open()?.setnonblock()?;
-            run(capture)?;
+            run(capture, capture_args.save_file)?;
         }
         SubCommands::List(_) => {
             println!("Available devices:");
@@ -34,7 +34,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let file = load.file;
             println!("Loading from file: {file}");
             let capture = Capturing::from_file(file)?;
-            run(capture)?;
+            run(capture, None)?;
         }
     }
     Ok(())
