@@ -5,11 +5,11 @@ mod ipv4;
 mod ipv6;
 mod rarp;
 
-use arp::{ArpPacket, ArpPacketError};
-use ipv4::{Ipv4Packet, Ipv4PacketError};
-use ipv6::Ipv6Packet;
+pub use arp::{ArpPacket, ArpPacketError};
+pub use ipv4::{Ipv4Packet, Ipv4PacketError};
+pub use ipv6::Ipv6Packet;
 use pcap::Packet;
-use rarp::RarpPacket;
+pub use rarp::RarpPacket;
 
 use chrono::DateTime;
 use std::fmt;

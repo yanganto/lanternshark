@@ -3,7 +3,7 @@
 #![warn(clippy::all, clippy::nursery, clippy::pedantic, clippy::cargo)]
 
 mod ethernet;
-pub use ethernet::EthernetPacket;
+pub use ethernet::*;
 
 use pcap::{ConnectionStatus, Device, Error};
 
