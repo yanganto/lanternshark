@@ -23,7 +23,7 @@ pub struct EthernetPacket<'a> {
     pub destination: MacAddress,
     /// The source MAC address. 48 bits.
     pub source: MacAddress,
-    /// The inner packet. Type is determined by the EtherType field (16 bits).
+    /// The inner packet. Type is determined by the `EtherType` field (16 bits).
     pub inner: EthernetPacketInner<'a>,
     /// The raw data field of the packet.
     pub data: &'a [u8],
@@ -55,7 +55,7 @@ pub enum EthernetPacketInner<'a> {
     Rarp(RarpPacket),
     /// IPv6 (0x86DD)
     Ipv6(Ipv6Packet),
-    /// Unknown or unsupported EtherType
+    /// Unknown or unsupported `EtherType`
     Unknown(UnknownEthernetPacket<'a>),
     // Add more EtherTypes as needed
 }
@@ -75,9 +75,13 @@ pub enum ParseEthernetError {
 
 impl<'a> EthernetPacket<'a> {
     /// Create a new Ethernet packet from header and raw data.
+    ///
+    /// # Errors
+    ///
+    /// See [`ParseEthernetError`].
     pub fn new(header: &pcap::PacketHeader, raw: &'a [u8]) -> Result<Self, ParseEthernetError> {
-        let seconds = header.ts.tv_sec as i64; // `as i64` is required, since on Windows `tv_sec` is `c_long` which is `i32`
-        let nanos = (header.ts.tv_usec as i64) * 1000;
+        let seconds = header.ts.tv_sec; // `as i64` is required, since on Windows `tv_sec` is `c_long` which is `i32`
+        let nanos = header.ts.tv_usec * 1000;
         let nanos = nanos
             .try_into()
             .map_err(|_| ParseEthernetError::TimestampOutOfRange)?;
@@ -123,7 +127,7 @@ impl<'a> TryFrom<&Packet<'a>> for EthernetPacket<'a> {
     }
 }
 
-impl<'a> fmt::Display for EthernetPacket<'a> {
+impl fmt::Display for EthernetPacket<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let Self {
             timestamp,
@@ -148,7 +152,7 @@ impl<'a> fmt::Display for EthernetPacket<'a> {
     }
 }
 
-impl<'a> fmt::Display for UnknownEthernetPacket<'a> {
+impl fmt::Display for UnknownEthernetPacket<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,

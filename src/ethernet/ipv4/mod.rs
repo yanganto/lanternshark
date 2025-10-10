@@ -88,6 +88,10 @@ pub enum Ipv4PacketError {
 
 impl<'a> Ipv4Packet<'a> {
     /// Create a new IPv4 packet from raw data.
+    ///
+    /// # Errors
+    ///
+    /// See [`Ipv4PacketError`].
     pub fn new(raw: &'a [u8]) -> Result<Self, Ipv4PacketError> {
         if raw.len() < 20 {
             return Err(Ipv4PacketError::PacketTooShort);
@@ -120,12 +124,7 @@ impl<'a> Ipv4Packet<'a> {
         let destination = Ipv4Addr::new(header[16], header[17], header[18], header[19]);
         let (options, data) = options_and_data.split_at(header_length_bytes - 20);
 
-        let inner = match protocol {
-            _ => Ipv4PacketInner::Unknown(UnknownIpv4Packet {
-                protocol,
-                data,
-            }),
-        };
+        let inner = Ipv4PacketInner::Unknown(UnknownIpv4Packet { protocol, data });
 
         Ok(Self {
             version,
@@ -147,7 +146,7 @@ impl<'a> Ipv4Packet<'a> {
     }
 }
 
-impl<'a> fmt::Display for Ipv4Packet<'a> {
+impl fmt::Display for Ipv4Packet<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let Self {
             total_length,
@@ -166,7 +165,7 @@ impl<'a> fmt::Display for Ipv4Packet<'a> {
     }
 }
 
-impl<'a> fmt::Display for Ipv4PacketInner<'a> {
+impl fmt::Display for Ipv4PacketInner<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Ipv4PacketInner::Unknown(packet) => write!(f, "{packet}"),
@@ -176,13 +175,18 @@ impl<'a> fmt::Display for Ipv4PacketInner<'a> {
 
 impl fmt::Display for UnknownIpv4Packet<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Unknown Protocol (0x{:02x}): {} bytes", self.protocol, self.data.len())
+        write!(
+            f,
+            "Unknown Protocol (0x{:02x}): {} bytes",
+            self.protocol,
+            self.data.len()
+        )
     }
 }
 
 impl Ipv4PacketDsf {
     /// Create a new Differentiated Services Field from a byte.
-    pub fn new(byte: u8) -> Self {
+    pub const fn new(byte: u8) -> Self {
         Self {
             dscp: byte >> 2,
             ecn: byte & 0x03,
@@ -192,7 +196,7 @@ impl Ipv4PacketDsf {
 
 impl Ipv4PacketFlags {
     /// Create new IPv4 packet flags from a 3-bit value.
-    pub fn new(bits: u8) -> Self {
+    pub const fn new(bits: u8) -> Self {
         Self {
             reserved: (bits & 0b100) != 0,
             dont_fragment: (bits & 0b010) != 0,

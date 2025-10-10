@@ -8,6 +8,7 @@ pub use ethernet::*;
 use pcap::{ConnectionStatus, Device, Error};
 
 /// Describe the given device.
+#[must_use]
 pub fn describe_device(device: &Device) -> Vec<String> {
     let Device {
         name,
@@ -17,7 +18,7 @@ pub fn describe_device(device: &Device) -> Vec<String> {
     } = device;
     let mut result = vec![format!("Name: {}", name)];
     if let Some(desc) = desc {
-        result.push(format!("Description: {}", desc));
+        result.push(format!("Description: {desc}"));
     }
     let status = &device.flags.connection_status;
     let status_line = match status {
@@ -37,6 +38,10 @@ pub fn describe_device(device: &Device) -> Vec<String> {
 }
 
 /// Find an available device. If `name_or_addr` is `None`, return the default device.
+///
+/// # Errors
+///
+/// Returns [`Error::PcapError`] if specified device is not found or no default device is found; Also propagates errors from calling pcap functions.
 pub fn find_device(name_or_addr: Option<&str>) -> Result<Device, Error> {
     let device = if let Some(name_or_addr) = name_or_addr {
         Device::list()?

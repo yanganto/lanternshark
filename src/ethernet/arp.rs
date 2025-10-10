@@ -2,9 +2,9 @@
 // https://en.wikipedia.org/wiki/Address_Resolution_Protocol
 // https://www.iana.org/assignments/arp-parameters/arp-parameters.xhtml
 
-use std::{fmt, net::Ipv4Addr};
-use num_enum::FromPrimitive;
 use super::MacAddress;
+use num_enum::FromPrimitive;
+use std::{fmt, net::Ipv4Addr};
 
 /// An ARP packet.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -74,6 +74,10 @@ pub enum ArpPacketError {
 
 impl<'a> ArpPacket<'a> {
     /// Create a new ARP packet from raw data.
+    ///
+    /// # Errors
+    ///
+    /// See [`ArpPacketError`].
     pub fn new(raw: &'a [u8]) -> Result<Self, ArpPacketError> {
         if raw.len() != 28 {
             return Err(ArpPacketError::PacketLengthInvalid(raw.len()));
@@ -113,7 +117,7 @@ impl From<ArpPacketError> for super::ParseEthernetError {
     }
 }
 
-impl<'a> fmt::Display for ArpPacket<'a> {
+impl fmt::Display for ArpPacket<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let Self {
             hardware_type,
@@ -137,10 +141,10 @@ impl<'a> fmt::Display for ArpPacket<'a> {
 impl fmt::Display for HardwareType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            HardwareType::Reserved => write!(f, "Reserved"),
-            HardwareType::Ethernet => write!(f, "Ethernet"),
-            HardwareType::IEEE802Networks => write!(f, "IEEE 802 Networks"),
-            HardwareType::Unknown(val) => write!(f, "Unknown (0x{val:04x})"),
+            Self::Reserved => write!(f, "Reserved"),
+            Self::Ethernet => write!(f, "Ethernet"),
+            Self::IEEE802Networks => write!(f, "IEEE 802 Networks"),
+            Self::Unknown(val) => write!(f, "Unknown (0x{val:04x})"),
         }
     }
 }
@@ -148,8 +152,8 @@ impl fmt::Display for HardwareType {
 impl fmt::Display for ProtocolType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ProtocolType::IPv4 => write!(f, "IPv4"),
-            ProtocolType::Unknown(val) => write!(f, "Unknown (0x{val:04x})"),
+            Self::IPv4 => write!(f, "IPv4"),
+            Self::Unknown(val) => write!(f, "Unknown (0x{val:04x})"),
         }
     }
 }
@@ -157,9 +161,9 @@ impl fmt::Display for ProtocolType {
 impl fmt::Display for ArpOperation {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ArpOperation::Request => write!(f, "Request"),
-            ArpOperation::Reply => write!(f, "Reply"),
-            ArpOperation::Unknown(val) => write!(f, "Unknown (0x{val:04x})"),
+            Self::Request => write!(f, "Request"),
+            Self::Reply => write!(f, "Reply"),
+            Self::Unknown(val) => write!(f, "Unknown (0x{val:04x})"),
         }
     }
 }
