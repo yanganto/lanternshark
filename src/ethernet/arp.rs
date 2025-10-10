@@ -1,5 +1,5 @@
 //! ARP packet parsing.
-// https://en.wikipedia.org/wiki/Address_Resolution_Protocol
+// https://www.wikiwand.com/en/articles/Address_Resolution_Protocol
 // https://www.iana.org/assignments/arp-parameters/arp-parameters.xhtml
 
 use super::MacAddress;

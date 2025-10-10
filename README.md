@@ -28,8 +28,14 @@ cargo build --release
 
 Note: You may need to [configure with `setcap`](https://github.com/rust-pcap/pcap?tab=readme-ov-file#linux), if you want to capture without root.
 
+## 📃 References
+
+- [ARP](https://www.wikiwand.com/en/articles/Address_Resolution_Protocol), [ARP parameters](https://www.iana.org/assignments/arp-parameters/arp-parameters.xhtml)
+- [IPv4](https://www.wikiwand.com/en/articles/IPv4)
+
 ## 🎉 Credits
 
-- [`pcap`](https://github.com/rust-pcap/pcap)
-- [`argh`](https://github.com/google/argh)
-<!-- - [`ratatui`](https://github.com/ratatui/ratatui) -->
+- [`pcap`](https://github.com/rust-pcap/pcap) for interacting with `libpcap`
+- [`argh`](https://github.com/google/argh) for commandline argument parsing
+<!-- - [`ratatui`](https://github.com/ratatui/ratatui) for TUI -->
+<!-- - [`wirefilter`](https://github.com/cloudflare/wirefilter) for filtering packets -->
