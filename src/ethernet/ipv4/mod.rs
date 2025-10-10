@@ -1,8 +1,15 @@
 //! IPv4 packet parsing.
 // https://www.wikiwand.com/en/articles/IPv4
 
+pub mod icmp;
+pub mod tcp;
+pub mod udp;
+
 use std::{fmt, net::Ipv4Addr};
 use super::EtherType;
+use icmp::{IcmpPacket, ParseIcmpError};
+use tcp::{TcpPacket, ParseTcpError};
+use udp::{UdpPacket, ParseUdpError};
 
 /// An IPv4 packet.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -68,13 +75,21 @@ pub struct Ipv4PacketFlags {
     pub more_fragments: bool,
 }
 
+/// Trait requiring associated const PROTOCOL for packet types.
+pub trait Protocol {
+    /// The Protocol value associated with the packet type.
+    const PROTOCOL: u8;
+}
+
 /// Available inner packet types for IPv4 packets.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Ipv4PacketInner<'a> {
-    // TODO: Add protocols
-    // 1 — ICMP (Internet Control Message Protocol)
-    // 6 — TCP (Transmission Control Protocol)
-    // 17 — UDP (User Datagram Protocol)
+    /// Internet Control Message Protocol (0x01)
+    Icmp(IcmpPacket<'a>),
+    /// Transmission Control Protocol (0x06)
+    Tcp(TcpPacket<'a>),
+    /// User Datagram Protocol (0x11)
+    Udp(UdpPacket<'a>),
     /// Unknown or unsupported protocol
     Unknown(UnknownIpv4Packet<'a>),
     // Add more protocols here as needed
@@ -82,13 +97,20 @@ pub enum Ipv4PacketInner<'a> {
 
 /// Possible errors when parsing an IPv4 packet.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Ipv4PacketError {
+pub enum ParseIpv4Error {
     /// The packet is too short to be a valid IPv4 packet, or shorter than the indicated header length.
     PacketTooShort,
     /// The header length is less than the minimum of 5 (20 bytes).
     HeaderLengthTooShort,
     /// The version is not 4.
     InvalidVersion,
+    /// Error parsing inner ICMP packet.
+    ParseIcmpError(ParseIcmpError),
+    /// Error parsing inner TCP packet.
+    ParseTcpError(ParseTcpError),
+    /// Error parsing inner UDP packet.
+    ParseUdpError(ParseUdpError),
+
 }
 
 impl<'a> Ipv4Packet<'a> {
@@ -97,24 +119,24 @@ impl<'a> Ipv4Packet<'a> {
     /// # Errors
     ///
     /// See [`Ipv4PacketError`].
-    pub fn new(raw: &'a [u8]) -> Result<Self, Ipv4PacketError> {
+    pub fn new(raw: &'a [u8]) -> Result<Self, ParseIpv4Error> {
         if raw.len() < 20 {
-            return Err(Ipv4PacketError::PacketTooShort);
+            return Err(ParseIpv4Error::PacketTooShort);
         }
 
         let (header, options_and_data) = raw.split_at(20);
         let version_and_ihl = header[0];
         let version = version_and_ihl >> 4;
         if version != 4 {
-            return Err(Ipv4PacketError::InvalidVersion);
+            return Err(ParseIpv4Error::InvalidVersion);
         }
         let header_length = version_and_ihl & 0x0F;
         if header_length < 5 {
-            return Err(Ipv4PacketError::HeaderLengthTooShort);
+            return Err(ParseIpv4Error::HeaderLengthTooShort);
         }
         let header_length_bytes = (header_length * 4) as usize;
         if raw.len() < header_length_bytes {
-            return Err(Ipv4PacketError::PacketTooShort);
+            return Err(ParseIpv4Error::PacketTooShort);
         }
         let dsf = Ipv4PacketDsf::new(header[1]);
         let total_length = u16::from_be_bytes([header[2], header[3]]);
@@ -129,7 +151,12 @@ impl<'a> Ipv4Packet<'a> {
         let destination = Ipv4Addr::new(header[16], header[17], header[18], header[19]);
         let (options, data) = options_and_data.split_at(header_length_bytes - 20);
 
-        let inner = Ipv4PacketInner::Unknown(UnknownIpv4Packet { protocol, data });
+        let inner = match protocol {
+            IcmpPacket::PROTOCOL => Ipv4PacketInner::Icmp(IcmpPacket::new(data)?),
+            TcpPacket::PROTOCOL => Ipv4PacketInner::Tcp(TcpPacket::new(data)?),
+            UdpPacket::PROTOCOL => Ipv4PacketInner::Udp(UdpPacket::new(data)?),
+            _ => Ipv4PacketInner::Unknown(UnknownIpv4Packet { protocol, data }),
+        };
 
         Ok(Self {
             version,
@@ -151,7 +178,7 @@ impl<'a> Ipv4Packet<'a> {
     }
 }
 
-impl<'a> EtherType for Ipv4Packet<'a> {
+impl EtherType for Ipv4Packet<'_> {
     const ETHER_TYPE: u16 = 0x0800;
 }
 
@@ -177,7 +204,10 @@ impl fmt::Display for Ipv4Packet<'_> {
 impl fmt::Display for Ipv4PacketInner<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Ipv4PacketInner::Unknown(packet) => write!(f, "{packet}"),
+            Self::Icmp(icmp) => icmp.fmt(f),
+            Self::Tcp(tcp) => tcp.fmt(f),
+            Self::Udp(udp) => udp.fmt(f),
+            Self::Unknown(unknown) => unknown.fmt(f),
         }
     }
 }
@@ -214,8 +244,8 @@ impl Ipv4PacketFlags {
     }
 }
 
-impl From<Ipv4PacketError> for super::ParseEthernetError {
-    fn from(err: Ipv4PacketError) -> Self {
-        Self::Ipv4PacketError(err)
+impl From<ParseIpv4Error> for super::ParseEthernetError {
+    fn from(err: ParseIpv4Error) -> Self {
+        Self::ParseIpv4Error(err)
     }
 }

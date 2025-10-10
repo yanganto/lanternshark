@@ -5,8 +5,8 @@ pub mod ipv4;
 pub mod ipv6;
 pub mod rarp;
 
-use arp::{ArpPacket, ArpPacketError};
-use ipv4::{Ipv4Packet, Ipv4PacketError};
+use arp::{ArpPacket, ParseArpError};
+use ipv4::{Ipv4Packet, ParseIpv4Error};
 use ipv6::Ipv6Packet;
 use pcap::Packet;
 use rarp::RarpPacket;
@@ -53,13 +53,13 @@ pub struct UnknownEthernetPacket<'a> {
 /// Available inner packet types for Ethernet frames.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum EthernetPacketInner<'a> {
-    /// IPv4 (0x0800)
+    /// Internet Protocol version 4 (0x0800)
     Ipv4(Ipv4Packet<'a>),
-    /// ARP (0x0806)
+    /// Address Resolution Protocol (0x0806)
     Arp(ArpPacket<'a>),
-    /// RARP (0x8035)
+    /// Reverse Address Resolution Protocol (0x8035)
     Rarp(RarpPacket),
-    /// IPv6 (0x86DD)
+    /// Internet Protocol version 6 (0x86DD)
     Ipv6(Ipv6Packet),
     // TODO: 0x8100 — VLAN-tagged frame (IEEE 802.1Q)?
     /// Unknown or unsupported `EtherType`
@@ -75,9 +75,9 @@ pub enum ParseEthernetError {
     /// The packet is too short to be a valid Ethernet frame.
     PacketTooShort,
     /// Error parsing inner ARP packet.
-    ArpPacketError(ArpPacketError),
+    ParseArpError(ParseArpError),
     /// Error parsing inner IPv4 packet.
-    Ipv4PacketError(Ipv4PacketError),
+    ParseIpv4Error(ParseIpv4Error),
 }
 
 impl<'a> EthernetPacket<'a> {
@@ -140,22 +140,27 @@ impl fmt::Display for EthernetPacket<'_> {
             timestamp,
             destination,
             source,
-            inner: ethertype,
+            inner,
             data,
             raw: _,
         } = self;
-        let inner = match ethertype {
-            EthernetPacketInner::Ipv4(ipv4) => ipv4.to_string(),
-            EthernetPacketInner::Arp(arp) => arp.to_string(),
-            EthernetPacketInner::Rarp(rarp) => rarp.to_string(),
-            EthernetPacketInner::Ipv6(ipv6) => ipv6.to_string(),
-            EthernetPacketInner::Unknown(unknown) => unknown.to_string(),
-        };
         write!(
             f,
-            "[{timestamp}] {source} -> {destination}, {ethertype:?}, {} bytes\n{inner}",
+            "[{timestamp}] {source} -> {destination}, {} bytes\n{inner}",
             data.len()
         )
+    }
+}
+
+impl fmt::Display for EthernetPacketInner<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Ipv4(ipv4) => ipv4.fmt(f),
+            Self::Arp(arp) => arp.fmt(f),
+            Self::Rarp(rarp) => rarp.fmt(f),
+            Self::Ipv6(ipv6) => ipv6.fmt(f),
+            Self::Unknown(unknown) => unknown.fmt(f),
+        }
     }
 }
 

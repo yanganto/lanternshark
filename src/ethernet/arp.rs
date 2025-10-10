@@ -76,7 +76,7 @@ pub enum ArpOperation {
 
 /// Possible errors when parsing an ARP packet.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ArpPacketError {
+pub enum ParseArpError {
     /// The packet length is not 28 bytes.
     PacketLengthInvalid(usize),
 }
@@ -87,9 +87,9 @@ impl<'a> ArpPacket<'a> {
     /// # Errors
     ///
     /// See [`ArpPacketError`].
-    pub fn new(raw: &'a [u8]) -> Result<Self, ArpPacketError> {
+    pub fn new(raw: &'a [u8]) -> Result<Self, ParseArpError> {
         if raw.len() != 28 {
-            return Err(ArpPacketError::PacketLengthInvalid(raw.len()));
+            return Err(ParseArpError::PacketLengthInvalid(raw.len()));
         }
         let hardware_type = u16::from_be_bytes([raw[0], raw[1]]);
         let hardware_type = HardwareType::from(hardware_type);
@@ -124,9 +124,9 @@ impl<'a> EtherType for ArpPacket<'a> {
     const ETHER_TYPE: u16 = 0x0806;
 }
 
-impl From<ArpPacketError> for super::ParseEthernetError {
-    fn from(err: ArpPacketError) -> Self {
-        Self::ArpPacketError(err)
+impl From<ParseArpError> for super::ParseEthernetError {
+    fn from(err: ParseArpError) -> Self {
+        Self::ParseArpError(err)
     }
 }
 
