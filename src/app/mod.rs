@@ -5,7 +5,8 @@ use ratatui::{DefaultTerminal, Frame};
 use super::ethernet::{EthernetPacket, EthernetPacketInner};
 
 /// Main application logic.
-pub fn run<T: Activated>(mut terminal: DefaultTerminal, mut capture: Capturing<T>) {
+pub fn run<T: Activated>(mut capture: Capturing<T>) {
+    let mut terminal = ratatui::init();
     while let Ok(packet) = capture.next_packet() {
         let packet = match EthernetPacket::try_from(&packet) {
             Ok(packet) => packet,
@@ -22,4 +23,5 @@ pub fn run<T: Activated>(mut terminal: DefaultTerminal, mut capture: Capturing<T
             _ => continue,
         };
     }
+    ratatui::restore();
 }

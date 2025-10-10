@@ -17,9 +17,8 @@ fn main() -> Result<(), pcap::Error> {
             for line in describe_device(&device) {
                 println!("  {line}");
             }
-            let terminal = ratatui::init();
             let capture = device.open()?;
-            run(terminal, capture);
+            run(capture);
         }
         SubCommands::List(_) => {
             println!("Available devices:");
@@ -34,9 +33,8 @@ fn main() -> Result<(), pcap::Error> {
         SubCommands::Load(load) => {
             let file = load.file;
             println!("Loading from file: {file}");
-            let terminal = ratatui::init();
             let capture = Capturing::from_file(file)?;
-            run(terminal, capture);
+            run(capture);
         }
     }
     Ok(())
