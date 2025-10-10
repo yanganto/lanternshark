@@ -6,7 +6,7 @@ pub struct Ipv4Packet {}
 
 impl Ipv4Packet {
     /// Create a new IPv4 packet from raw data.
-    pub fn new(_data: &[u8]) -> Self {
+    pub fn new(_raw_data: &[u8]) -> Self {
         // Placeholder implementation
         Self {}
     }

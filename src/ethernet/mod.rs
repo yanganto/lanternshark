@@ -81,8 +81,12 @@ impl<'a> TryFrom<&Packet<'a>> for EthernetPacket<'a> {
             return Err(ParseEthernetError::PacketTooShort);
         }
         let (header, raw_data) = packet.data.split_at(14);
-        let destination = MacAddress(header[0..6].try_into().unwrap()); // safe unwrap due to length check above
-        let source = MacAddress(header[6..12].try_into().unwrap()); // safe unwrap due to length check above
+        let destination = MacAddress([
+            header[0], header[1], header[2], header[3], header[4], header[5],
+        ]);
+        let source = MacAddress([
+            header[6], header[7], header[8], header[9], header[10], header[11],
+        ]);
         let ethertype_raw = u16::from_be_bytes([header[12], header[13]]);
         let ethertype = match ethertype_raw {
             0x0800 => EtherTypes::Ipv4(Ipv4Packet::new(raw_data)), // Placeholder for actual IPv4 packet parsing
@@ -114,9 +118,21 @@ impl<'a> fmt::Display for EthernetPacket<'a> {
             inner: ethertype,
             raw_data: data,
         } = self;
+        let inner = match ethertype {
+            // EtherTypes::Ipv4(packet) => format!("{packet}"),
+            EtherTypes::Ipv4(_packet) => "IPv4 Packet".to_string(),
+            EtherTypes::Arp(packet) => format!("{packet}"),
+            // EtherTypes::Rarp(packet) => format!("{packet}"),
+            EtherTypes::Rarp(_packet) => "RARP Packet".to_string(),
+            // EtherTypes::Ipv6(packet) => format!("{packet}"),
+            EtherTypes::Ipv6(_packet) => "IPv6 Packet".to_string(),
+            EtherTypes::Unknown(unknown) => {
+                format!("Unknown (0x{:04x}): {} bytes", unknown.ethertype, unknown.raw_data.len())
+            }
+        };
         write!(
             f,
-            "[{timestamp}] {source} -> {destination}, {ethertype:?}, {} bytes",
+            "[{timestamp}] {source} -> {destination}, {ethertype:?}, {} bytes\n{inner}",
             data.len()
         )
     }

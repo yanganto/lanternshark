@@ -7,10 +7,10 @@ arguments = []
 command = ["cargo", "build", "--release", "--features=cli"]
 
 [[recipes]]
-names = ["run", "r"]
-description = "Compile and \u001b[4mr\u001b[24mun"
-arguments = ["*rest"]
-command = ["cargo", "run", "--features=cli", "--", ["*rest"]]
+names = ["dev", "d"]
+description = "Build \u001b[4md\u001b[24ev binary"
+arguments = []
+command = ["cargo", "build", "--features=cli"]
 
 [[recipes]]
 names = ["test", "t"]

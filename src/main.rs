@@ -51,7 +51,6 @@ fn main() -> Result<(), pcap::Error> {
             for line in describe_device(&device) {
                 println!("  {line}");
             }
-            println!("---");
             let cap = device.open()?;
             handle_packets(cap);
         }
@@ -68,7 +67,6 @@ fn main() -> Result<(), pcap::Error> {
         SubCommands::Load(load) => {
             let file = load.file;
             println!("Loading from file: {file}");
-            println!("---");
             let cap = Capturing::from_file(file)?;
             handle_packets(cap);
         }
@@ -78,6 +76,7 @@ fn main() -> Result<(), pcap::Error> {
 
 fn handle_packets<T: Activated>(mut capture: Capturing<T>) {
     while let Ok(packet) = capture.next_packet() {
+        println!("---");
         let ethernet_packet = EthernetPacket::try_from(&packet);
         match ethernet_packet {
             Ok(eth_pkt) => println!("{eth_pkt}"),
