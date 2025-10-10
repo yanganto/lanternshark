@@ -5,8 +5,8 @@ mod ipv4;
 mod ipv6;
 mod rarp;
 
-use arp::ArpPacket;
-use ipv4::Ipv4Packet;
+use arp::{ArpPacket, ArpPacketError};
+use ipv4::{Ipv4Packet, Ipv4PacketError};
 use ipv6::Ipv6Packet;
 use pcap::Packet;
 use rarp::RarpPacket;
@@ -19,14 +19,16 @@ use std::fmt;
 pub struct EthernetPacket<'a> {
     /// The timestamp of the packet.
     pub timestamp: DateTime<chrono::Utc>,
-    /// The destination MAC address.
+    /// The destination MAC address. 48 bits.
     pub destination: MacAddress,
-    /// The source MAC address.
+    /// The source MAC address. 48 bits.
     pub source: MacAddress,
-    /// The inner packet type.
-    pub inner: EtherTypes<'a>,
+    /// The inner packet. Type is determined by the EtherType field (16 bits).
+    pub inner: EthernetPacketInner<'a>,
     /// The raw data field of the packet.
-    pub raw_data: &'a [u8],
+    pub data: &'a [u8],
+    /// The raw Ethernet packet.
+    pub raw: &'a [u8],
 }
 
 /// A MAC address.
@@ -38,24 +40,24 @@ pub struct MacAddress([u8; 6]);
 pub struct UnknownEthernetPacket<'a> {
     /// The raw type of the Ethernet packet.
     pub ethertype: u16,
-    /// The raw data field of the packet.
-    pub raw_data: &'a [u8],
+    /// The raw data field of the Ethernet packet.
+    pub data: &'a [u8],
 }
 
 /// Available inner packet types for Ethernet frames.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum EtherTypes<'a> {
+pub enum EthernetPacketInner<'a> {
     /// IPv4 (0x0800)
-    Ipv4(Ipv4Packet),
+    Ipv4(Ipv4Packet<'a>),
     /// ARP (0x0806)
-    Arp(ArpPacket),
+    Arp(ArpPacket<'a>),
     /// RARP (0x8035)
     Rarp(RarpPacket),
     /// IPv6 (0x86DD)
     Ipv6(Ipv6Packet),
     /// Unknown or unsupported EtherType
     Unknown(UnknownEthernetPacket<'a>),
-    // TODO: add more EtherTypes as needed
+    // Add more EtherTypes as needed
 }
 
 /// Possible errors when parsing an Ethernet packet.
@@ -65,22 +67,26 @@ pub enum ParseEthernetError {
     TimestampOutOfRange,
     /// The packet is too short to be a valid Ethernet frame.
     PacketTooShort,
+    /// Error parsing inner ARP packet.
+    ArpPacketError(ArpPacketError),
+    /// Error parsing inner IPv4 packet.
+    Ipv4PacketError(Ipv4PacketError),
 }
 
-impl<'a> TryFrom<&Packet<'a>> for EthernetPacket<'a> {
-    type Error = ParseEthernetError;
-    fn try_from(packet: &Packet<'a>) -> Result<Self, ParseEthernetError> {
-        let seconds = packet.header.ts.tv_sec as i64; // `as i64` is required, since on Windows `tv_sec` is `c_long` which is `i32`
-        let nanos = (packet.header.ts.tv_usec as i64) * 1000;
+impl<'a> EthernetPacket<'a> {
+    /// Create a new Ethernet packet from header and raw data.
+    pub fn new(header: &pcap::PacketHeader, raw: &'a [u8]) -> Result<Self, ParseEthernetError> {
+        let seconds = header.ts.tv_sec as i64; // `as i64` is required, since on Windows `tv_sec` is `c_long` which is `i32`
+        let nanos = (header.ts.tv_usec as i64) * 1000;
         let nanos = nanos
             .try_into()
             .map_err(|_| ParseEthernetError::TimestampOutOfRange)?;
         let timestamp = DateTime::from_timestamp(seconds, nanos)
             .ok_or(ParseEthernetError::TimestampOutOfRange)?;
-        if packet.data.len() < 14 {
+        if raw.len() < 14 {
             return Err(ParseEthernetError::PacketTooShort);
         }
-        let (header, raw_data) = packet.data.split_at(14);
+        let (header, data) = raw.split_at(14);
         let destination = MacAddress([
             header[0], header[1], header[2], header[3], header[4], header[5],
         ]);
@@ -89,13 +95,13 @@ impl<'a> TryFrom<&Packet<'a>> for EthernetPacket<'a> {
         ]);
         let ethertype_raw = u16::from_be_bytes([header[12], header[13]]);
         let ethertype = match ethertype_raw {
-            0x0800 => EtherTypes::Ipv4(Ipv4Packet::new(raw_data)), // Placeholder for actual IPv4 packet parsing
-            0x0806 => EtherTypes::Arp(ArpPacket::new(raw_data)), // Placeholder for actual ARP packet parsing
-            0x8035 => EtherTypes::Rarp(RarpPacket::new(raw_data)), // Placeholder for actual RARP packet parsing
-            0x86DD => EtherTypes::Ipv6(Ipv6Packet::new(raw_data)), // Placeholder for actual IPv6 packet parsing
-            _ => EtherTypes::Unknown(UnknownEthernetPacket {
+            0x0800 => EthernetPacketInner::Ipv4(Ipv4Packet::new(data)?), // Placeholder for actual IPv4 packet parsing
+            0x0806 => EthernetPacketInner::Arp(ArpPacket::new(data)?), // Placeholder for actual ARP packet parsing
+            0x8035 => EthernetPacketInner::Rarp(RarpPacket::new(data)), // Placeholder for actual RARP packet parsing
+            0x86DD => EthernetPacketInner::Ipv6(Ipv6Packet::new(data)), // Placeholder for actual IPv6 packet parsing
+            _ => EthernetPacketInner::Unknown(UnknownEthernetPacket {
                 ethertype: ethertype_raw,
-                raw_data,
+                data,
             }),
         };
 
@@ -104,8 +110,16 @@ impl<'a> TryFrom<&Packet<'a>> for EthernetPacket<'a> {
             destination,
             source,
             inner: ethertype,
-            raw_data,
+            data,
+            raw,
         })
+    }
+}
+
+impl<'a> TryFrom<&Packet<'a>> for EthernetPacket<'a> {
+    type Error = ParseEthernetError;
+    fn try_from(packet: &Packet<'a>) -> Result<Self, ParseEthernetError> {
+        EthernetPacket::new(packet.header, packet.data)
     }
 }
 
@@ -116,18 +130,19 @@ impl<'a> fmt::Display for EthernetPacket<'a> {
             destination,
             source,
             inner: ethertype,
-            raw_data: data,
+            data,
+            raw: _,
         } = self;
         let inner = match ethertype {
             // EtherTypes::Ipv4(packet) => format!("{packet}"),
-            EtherTypes::Ipv4(_packet) => "IPv4 Packet".to_string(),
-            EtherTypes::Arp(packet) => format!("{packet}"),
+            EthernetPacketInner::Ipv4(_packet) => "IPv4 Packet".to_string(),
+            EthernetPacketInner::Arp(packet) => format!("{packet}"),
             // EtherTypes::Rarp(packet) => format!("{packet}"),
-            EtherTypes::Rarp(_packet) => "RARP Packet".to_string(),
+            EthernetPacketInner::Rarp(_packet) => "RARP Packet".to_string(),
             // EtherTypes::Ipv6(packet) => format!("{packet}"),
-            EtherTypes::Ipv6(_packet) => "IPv6 Packet".to_string(),
-            EtherTypes::Unknown(unknown) => {
-                format!("Unknown (0x{:04x}): {} bytes", unknown.ethertype, unknown.raw_data.len())
+            EthernetPacketInner::Ipv6(_packet) => "IPv6 Packet".to_string(),
+            EthernetPacketInner::Unknown(unknown) => {
+                format!("Unknown (0x{:04x}): {} bytes", unknown.ethertype, unknown.data.len())
             }
         };
         write!(
@@ -152,7 +167,7 @@ impl fmt::Display for MacAddress {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pcap::{Packet, PacketHeader};
+    use pcap::PacketHeader;
 
     static HEADER: PacketHeader = PacketHeader {
         ts: libc::timeval {
@@ -176,9 +191,8 @@ mod tests {
 
     #[test]
     fn test_parse_ethernet_packet() {
-        let raw_packet = Packet::new(&HEADER, &DATA);
         let eth_packet =
-            EthernetPacket::try_from(&raw_packet).expect("Failed to parse Ethernet packet");
+            EthernetPacket::new(&HEADER, &DATA).expect("Failed to parse Ethernet packet");
 
         assert_eq!(eth_packet.timestamp.timestamp(), HEADER.ts.tv_sec as i64);
         assert_eq!(
@@ -193,7 +207,7 @@ mod tests {
             eth_packet.source,
             MacAddress([0x00, 0x1a, 0x2b, 0x3c, 0x4d, 0x5e])
         );
-        assert!(matches!(eth_packet.inner, EtherTypes::Ipv4(_)));
-        assert_eq!(eth_packet.raw_data, &DATA[14..]);
+        assert!(matches!(eth_packet.inner, EthernetPacketInner::Ipv4(_)));
+        assert_eq!(eth_packet.data, &DATA[14..]);
     }
 }

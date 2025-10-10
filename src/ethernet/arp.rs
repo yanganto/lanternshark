@@ -8,25 +8,27 @@ use super::MacAddress;
 
 /// An ARP packet.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ArpPacket {
-    /// Hardware type.
+pub struct ArpPacket<'a> {
+    /// Hardware type. 16 bits.
     pub hardware_type: HardwareType,
-    /// Protocol type.
+    /// Protocol type. 16 bits.
     pub protocol_type: ProtocolType,
     /// Hardware length.
     pub hardware_length: u8,
     /// Protocol length.
     pub protocol_length: u8,
-    /// Operation.
+    /// Operation. 16 bits.
     pub operation: ArpOperation,
-    /// Sender MAC address.
+    /// Sender MAC address. 48 bits.
     pub sender_mac: MacAddress,
-    /// Sender IP address.
+    /// Sender IP address. 32 bits.
     pub sender_ip: Ipv4Addr,
-    /// Target MAC address.
+    /// Target MAC address. 48 bits.
     pub target_mac: MacAddress,
-    /// Target IP address.
+    /// Target IP address. 32 bits.
     pub target_ip: Ipv4Addr,
+    /// The raw ARP packet.
+    pub raw: &'a [u8],
 }
 
 /// Available hardware types.
@@ -63,25 +65,34 @@ pub enum ArpOperation {
     Unknown(u16),
 }
 
-impl ArpPacket {
+/// Possible errors when parsing an ARP packet.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ArpPacketError {
+    /// The packet length is not 28 bytes.
+    PacketLengthInvalid(usize),
+}
+
+impl<'a> ArpPacket<'a> {
     /// Create a new ARP packet from raw data.
-    pub fn new(raw_data: &[u8]) -> Self {
-        // todo!("Implement ARP packet parsing");
-        let hardware_type = u16::from_be_bytes([raw_data[0], raw_data[1]]);
+    pub fn new(raw: &'a [u8]) -> Result<Self, ArpPacketError> {
+        if raw.len() != 28 {
+            return Err(ArpPacketError::PacketLengthInvalid(raw.len()));
+        }
+        let hardware_type = u16::from_be_bytes([raw[0], raw[1]]);
         let hardware_type = HardwareType::from(hardware_type);
-        let protocol_type = u16::from_be_bytes([raw_data[2], raw_data[3]]);
+        let protocol_type = u16::from_be_bytes([raw[2], raw[3]]);
         let protocol_type = ProtocolType::from(protocol_type);
 
-        let hardware_length = raw_data[4];
-        let protocol_length = raw_data[5];
-        let opcode = u16::from_be_bytes([raw_data[6], raw_data[7]]);
+        let hardware_length = raw[4];
+        let protocol_length = raw[5];
+        let opcode = u16::from_be_bytes([raw[6], raw[7]]);
         let operation = ArpOperation::from(opcode);
 
-        let sender_mac = MacAddress([raw_data[8], raw_data[9], raw_data[10], raw_data[11], raw_data[12], raw_data[13]]);
-        let sender_ip = Ipv4Addr::new(raw_data[14], raw_data[15], raw_data[16], raw_data[17]);
-        let target_mac = MacAddress([raw_data[18], raw_data[19], raw_data[20], raw_data[21], raw_data[22], raw_data[23]]);
-        let target_ip = Ipv4Addr::new(raw_data[24], raw_data[25], raw_data[26], raw_data[27]);
-        ArpPacket {
+        let sender_mac = MacAddress([raw[8], raw[9], raw[10], raw[11], raw[12], raw[13]]);
+        let sender_ip = Ipv4Addr::new(raw[14], raw[15], raw[16], raw[17]);
+        let target_mac = MacAddress([raw[18], raw[19], raw[20], raw[21], raw[22], raw[23]]);
+        let target_ip = Ipv4Addr::new(raw[24], raw[25], raw[26], raw[27]);
+        Ok(ArpPacket {
             hardware_type,
             protocol_type,
             hardware_length,
@@ -91,11 +102,18 @@ impl ArpPacket {
             sender_ip,
             target_mac,
             target_ip,
-        }
+            raw,
+        })
     }
 }
 
-impl fmt::Display for ArpPacket {
+impl From<ArpPacketError> for super::ParseEthernetError {
+    fn from(err: ArpPacketError) -> Self {
+        Self::ArpPacketError(err)
+    }
+}
+
+impl<'a> fmt::Display for ArpPacket<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let Self {
             hardware_type,
@@ -107,6 +125,7 @@ impl fmt::Display for ArpPacket {
             sender_ip,
             target_mac,
             target_ip,
+            raw: _,
         } = self;
         write!(
             f,
