@@ -8,7 +8,7 @@ use sniffer::{
     find_device,
 };
 
-fn main() -> Result<(), pcap::Error> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli: Cli = argh::from_env();
     match cli.subcommand {
         SubCommands::Capture(capture) => {
@@ -18,7 +18,7 @@ fn main() -> Result<(), pcap::Error> {
                 println!("  {line}");
             }
             let capture = device.open()?;
-            run(capture);
+            run(capture)?;
         }
         SubCommands::List(_) => {
             println!("Available devices:");
@@ -34,7 +34,7 @@ fn main() -> Result<(), pcap::Error> {
             let file = load.file;
             println!("Loading from file: {file}");
             let capture = Capturing::from_file(file)?;
-            run(capture);
+            run(capture)?;
         }
     }
     Ok(())

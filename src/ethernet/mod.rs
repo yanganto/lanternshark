@@ -33,7 +33,7 @@ pub struct EthernetPacket<'a> {
 
 /// A MAC address.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct MacAddress([u8; 6]);
+pub struct MacAddress(pub [u8; 6]);
 
 /// An Ethernet packet of unknown or unsupported type.
 #[derive(Debug, Clone, PartialEq, Eq)]

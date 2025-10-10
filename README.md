@@ -26,7 +26,23 @@ cargo build --release
 
 ## 📖 Usage
 
-Note: You may need to [configure with `setcap`](https://github.com/rust-pcap/pcap?tab=readme-ov-file#linux), if you want to capture without root.
+### ▶️ Running TUI
+
+```bash
+sudo ./sniffer capture # To capture from default device
+```
+
+Alternatively, you can [configure with `setcap`](https://github.com/rust-pcap/pcap?tab=readme-ov-file#linux), if you want to capture without root.
+
+### ⌨️ Keyboard Control
+
+- **↑/↓** / **j/k**: Select previous/next packet
+- **Page Up/Down**: Fast scroll (10 packets at a time)
+- **Home**: Jump to first packet
+- **End**: Jump to last packet
+- **w/s**: Scroll packet details panel up/down
+- **e/d**: Scroll hex dump panel up/down
+- **q** or **Ctrl+C**: Quit the application
 
 ## 📃 References
 

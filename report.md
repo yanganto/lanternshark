@@ -14,3 +14,7 @@
     - [ ] `RarpPacket`
     - [ ] `Ipv6Packet`
     - [x] `UnknownEthernetPacket`
+
+## 🖼️ TUI
+
+> 此部分使用了 AI 辅助完成。
