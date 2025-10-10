@@ -55,6 +55,7 @@ pub enum EthernetPacketInner<'a> {
     Rarp(RarpPacket),
     /// IPv6 (0x86DD)
     Ipv6(Ipv6Packet),
+    // TODO: 0x8100 — VLAN-tagged frame (IEEE 802.1Q)?
     /// Unknown or unsupported `EtherType`
     Unknown(UnknownEthernetPacket<'a>),
     // Add more EtherTypes as needed

@@ -71,8 +71,12 @@ pub struct Ipv4PacketFlags {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Ipv4PacketInner<'a> {
     // TODO: Add protocols
+    // 1 — ICMP (Internet Control Message Protocol)
+    // 6 — TCP (Transmission Control Protocol)
+    // 17 — UDP (User Datagram Protocol)
     /// Unknown or unsupported protocol
     Unknown(UnknownIpv4Packet<'a>),
+    // Add more protocols here as needed
 }
 
 /// Possible errors when parsing an IPv4 packet.

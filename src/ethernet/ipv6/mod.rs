@@ -8,7 +8,7 @@ pub struct Ipv6Packet {}
 
 impl Ipv6Packet {
     /// Create a new IPv6 packet from raw data.
-    #[must_use] 
+    #[must_use]
     pub const fn new(_raw: &[u8]) -> Self {
         // Placeholder implementation
         Self {}

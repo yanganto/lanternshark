@@ -9,12 +9,6 @@ My traffic sniffer for the course "Software and System Security"。
 
 ## 📥 Installation
 
-### Using [`binstall`](https://github.com/cargo-bins/cargo-binstall)
-
-```shell
-cargo binstall sniffer
-```
-
 ### Downloading from Releases
 
 Navigate to the [Releases page](https://github.com/PRO-2684/sniffer/releases) and download respective binary for your platform. Make sure to give it execute permissions.
@@ -24,19 +18,11 @@ Navigate to the [Releases page](https://github.com/PRO-2684/sniffer/releases) an
 Refer to [`pcap` docs](https://github.com/rust-pcap/pcap?tab=readme-ov-file#installing-dependencies) for requirements on dependencies.
 
 ```shell
-cargo install sniffer
+git clone https://github.com/PRO-2684/Sniffer.git
+cd Sniffer
+cargo build --release
+# The binary will be available at ./target/release/sniffer
 ```
-
-## 🌲 Hierarchy
-
-[`Packet`](pcap::Packet):
-
-- [`EthernetPacket`]
-    - [`Ipv4Packet`]
-    - [`ArpPacket`]
-    - [`RarpPacket`]
-    - [`Ipv6Packet`]
-    - [`UnknownEthernetPacket`]
 
 ## 📖 Usage
 

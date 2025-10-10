@@ -8,7 +8,7 @@ pub struct RarpPacket {}
 
 impl RarpPacket {
     /// Create a new RARP packet from raw data.
-    #[must_use] 
+    #[must_use]
     pub const fn new(_raw: &[u8]) -> Self {
         // Placeholder implementation
         Self {}
