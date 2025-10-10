@@ -2,6 +2,7 @@
 
 use std::fmt;
 use super::{Protocol, ParseIpv4Error};
+use crate::ethernet::packet_detail::PacketDetail;
 
 /// A UDP packet.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -38,5 +39,30 @@ impl Protocol for UdpPacket<'_> {
 impl fmt::Display for UdpPacket<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "UDP Packet, {} bytes", self.data.len())
+    }
+}
+
+impl PacketDetail for UdpPacket<'_> {
+    fn summary(&self) -> String {
+        format!("{} bytes", self.data.len())
+    }
+
+    fn details(&self) -> Vec<String> {
+        vec![
+            "UDP parsing not yet fully implemented".to_string(),
+            format!("Data Length: {} bytes", self.data.len()),
+        ]
+    }
+
+    fn slug(&self) -> &'static str {
+        "UDP"
+    }
+
+    fn name(&self) -> &'static str {
+        "User Datagram Protocol"
+    }
+
+    fn length(&self) -> usize {
+        self.raw.len()
     }
 }

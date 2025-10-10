@@ -7,6 +7,7 @@ pub mod udp;
 
 use std::{fmt, net::Ipv4Addr};
 use super::EtherType;
+use super::packet_detail::PacketDetail;
 use icmp::{IcmpPacket, ParseIcmpError};
 use tcp::{TcpPacket, ParseTcpError};
 use udp::{UdpPacket, ParseUdpError};
@@ -93,6 +94,28 @@ pub enum Ipv4PacketInner<'a> {
     /// Unknown or unsupported protocol
     Unknown(UnknownIpv4Packet<'a>),
     // Add more protocols here as needed
+}
+
+impl Ipv4PacketInner<'_> {
+    /// Get the protocol number.
+    pub const fn protocol_number(&self) -> u8 {
+        match self {
+            Self::Icmp(_) => IcmpPacket::PROTOCOL,
+            Self::Tcp(_) => TcpPacket::PROTOCOL,
+            Self::Udp(_) => UdpPacket::PROTOCOL,
+            Self::Unknown(u) => u.protocol,
+        }
+    }
+
+    /// Get the protocol slug.
+    pub const fn slug(&self) -> &'static str {
+        match self {
+            Self::Icmp(_) => "ICMP",
+            Self::Tcp(_) => "TCP",
+            Self::Udp(_) => "UDP",
+            Self::Unknown(_) => "Unknown",
+        }
+    }
 }
 
 /// Possible errors when parsing an IPv4 packet.
@@ -241,6 +264,49 @@ impl Ipv4PacketFlags {
             dont_fragment: (bits & 0b010) != 0,
             more_fragments: (bits & 0b001) != 0,
         }
+    }
+}
+
+impl PacketDetail for Ipv4Packet<'_> {
+    fn summary(&self) -> String {
+        format!("Len: {}, TTL: {}", self.total_length, self.ttl)
+    }
+
+    fn details(&self) -> Vec<String> {
+        vec![
+            format!("Version: {}", self.version),
+            format!("Header Length: {} bytes ({})", self.header_length * 4, self.header_length),
+            format!("DSCP: {}, ECN: {}", self.dsf.dscp, self.dsf.ecn),
+            format!("Total Length: {}", self.total_length),
+            format!("Identification: 0x{:04x}", self.identification),
+            format!("Flags: DF={}, MF={}", self.flags.dont_fragment as u8, self.flags.more_fragments as u8),
+            format!("Fragment Offset: {}", self.fragment_offset),
+            format!("Time to Live: {}", self.ttl),
+            format!("Protocol: {} ({})", self.inner.slug(), self.inner.protocol_number()),
+            format!("Header Checksum: 0x{:04x}", self.header_checksum),
+            format!("Source: {}", self.source),
+            format!("Destination: {}", self.destination),
+        ]
+    }
+
+    fn slug(&self) -> &'static str {
+        "IPV4"
+    }
+
+    fn name(&self) -> &'static str {
+        "Internet Protocol Version 4"
+    }
+
+    fn source(&self) -> Option<String> {
+        Some(self.source.to_string())
+    }
+
+    fn destination(&self) -> Option<String> {
+        Some(self.destination.to_string())
+    }
+
+    fn length(&self) -> usize {
+        self.raw.len()
     }
 }
 

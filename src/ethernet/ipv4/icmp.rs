@@ -4,6 +4,7 @@
 use num_enum::FromPrimitive;
 use std::fmt;
 use super::{Protocol, ParseIpv4Error};
+use crate::ethernet::packet_detail::PacketDetail;
 
 /// A ICMP packet.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -116,5 +117,41 @@ impl fmt::Display for IcmpType {
             IcmpType::ParameterProblem => write!(f, "Parameter Problem"),
             IcmpType::Unknown(t) => write!(f, "Unknown (0x{t:02x})"),
         }
+    }
+}
+
+impl PacketDetail for IcmpPacket<'_> {
+    fn summary(&self) -> String {
+        format!("{} (Code: {})", self.icmp_type, self.code)
+    }
+
+    fn details(&self) -> Vec<String> {
+        let type_num = match self.icmp_type {
+            IcmpType::EchoReply => 0,
+            IcmpType::DestinationUnreachable => 3,
+            IcmpType::EchoRequest => 8,
+            IcmpType::TimeExceeded => 11,
+            IcmpType::ParameterProblem => 12,
+            IcmpType::Unknown(t) => t,
+        };
+        vec![
+            format!("Type: {} ({})", self.icmp_type, type_num),
+            format!("Code: {}", self.code),
+            format!("Checksum: 0x{:04x}", self.checksum),
+            format!("Rest of Header: 0x{:08x}", self.rest_of_header),
+            format!("Data Length: {} bytes", self.data.len()),
+        ]
+    }
+
+    fn slug(&self) -> &'static str {
+        "ICMP"
+    }
+
+    fn name(&self) -> &'static str {
+        "Internet Control Message Protocol"
+    }
+
+    fn length(&self) -> usize {
+        self.raw.len()
     }
 }

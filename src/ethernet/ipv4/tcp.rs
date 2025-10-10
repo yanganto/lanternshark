@@ -2,6 +2,7 @@
 
 use std::fmt;
 use super::{Protocol, ParseIpv4Error};
+use crate::ethernet::packet_detail::PacketDetail;
 
 /// A TCP packet.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -38,5 +39,30 @@ impl Protocol for TcpPacket<'_> {
 impl fmt::Display for TcpPacket<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "TCP Packet, {} bytes", self.data.len())
+    }
+}
+
+impl PacketDetail for TcpPacket<'_> {
+    fn summary(&self) -> String {
+        format!("{} bytes", self.data.len())
+    }
+
+    fn details(&self) -> Vec<String> {
+        vec![
+            "TCP parsing not yet fully implemented".to_string(),
+            format!("Data Length: {} bytes", self.data.len()),
+        ]
+    }
+
+    fn slug(&self) -> &'static str {
+        "TCP"
+    }
+
+    fn name(&self) -> &'static str {
+        "Transmission Control Protocol"
+    }
+
+    fn length(&self) -> usize {
+        self.raw.len()
     }
 }

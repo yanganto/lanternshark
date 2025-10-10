@@ -1,6 +1,6 @@
 //! UI rendering components.
 
-use super::packet_info::{PacketInfo, ProtocolDetail};
+use super::packet_info::PacketInfo;
 use super::state::App;
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
@@ -107,8 +107,7 @@ fn format_packet_details(packet: &PacketInfo) -> Text<'static> {
     // Ethernet frame
     lines.push(Line::from(vec![
         Span::styled("▼ Ethernet II", Style::default().fg(Color::Green)),
-        Span::raw(format!(", Src: {}, Dst: ", packet.packet.ethernet.source)),
-        Span::raw(format!("{}", packet.packet.ethernet.destination)),
+        Span::raw(format!(", Src: {}, Dst: {}", packet.packet.ethernet.source, packet.packet.ethernet.destination)),
     ]));
     lines.push(Line::from(format!(
         "  Destination: {}",
@@ -124,80 +123,14 @@ fn format_packet_details(packet: &PacketInfo) -> Text<'static> {
     )));
     lines.push(Line::from(""));
 
-    // Protocol-specific details
-    match &packet.packet.protocol_detail {
-        ProtocolDetail::Arp {
-            hardware_type,
-            protocol_type,
-            operation,
-            sender_mac,
-            sender_ip,
-            target_mac,
-            target_ip,
-        } => {
-            lines.push(Line::from(vec![
-                Span::styled("▼ Address Resolution Protocol", Style::default().fg(Color::Green)),
-                Span::raw(format!(" ({operation})")),
-            ]));
-            lines.push(Line::from(format!("  Hardware type: {hardware_type}")));
-            lines.push(Line::from(format!("  Protocol type: {protocol_type}")));
-            lines.push(Line::from(format!("  Operation: {operation}")));
-            lines.push(Line::from(format!("  Sender MAC address: {sender_mac}")));
-            lines.push(Line::from(format!("  Sender IP address: {sender_ip}")));
-            lines.push(Line::from(format!("  Target MAC address: {target_mac}")));
-            lines.push(Line::from(format!("  Target IP address: {target_ip}")));
-        }
-        ProtocolDetail::Ipv4 {
-            version,
-            header_length,
-            total_length,
-            ttl,
-            protocol,
-            source,
-            destination,
-        } => {
-            lines.push(Line::from(vec![
-                Span::styled("▼ Internet Protocol Version 4", Style::default().fg(Color::Green)),
-                Span::raw(format!(", Src: {source}, Dst: {destination}")),
-            ]));
-            lines.push(Line::from(format!("  Version: {version}")));
-            lines.push(Line::from(format!(
-                "  Header Length: {} bytes ({})",
-                header_length * 4,
-                header_length
-            )));
-            lines.push(Line::from(format!("  Total Length: {total_length}")));
-            lines.push(Line::from(format!("  Time to Live: {ttl}")));
-            lines.push(Line::from(format!("  Protocol: {} ({})",
-                match *protocol {
-                    1 => "ICMP",
-                    6 => "TCP",
-                    17 => "UDP",
-                    _ => "Unknown",
-                },
-                protocol
-            )));
-            lines.push(Line::from(format!("  Source: {source}")));
-            lines.push(Line::from(format!("  Destination: {destination}")));
-        }
-        ProtocolDetail::Ipv6 { source, destination } => {
-            lines.push(Line::from(vec![
-                Span::styled("▼ Internet Protocol Version 6", Style::default().fg(Color::Green)),
-            ]));
-            lines.push(Line::from(format!("  Source: {source}")));
-            lines.push(Line::from(format!("  Destination: {destination}")));
-        }
-        ProtocolDetail::Rarp => {
-            lines.push(Line::from(vec![
-                Span::styled("▼ Reverse Address Resolution Protocol", Style::default().fg(Color::Green)),
-            ]));
-        }
-        ProtocolDetail::Unknown { ethertype } => {
-            lines.push(Line::from(vec![
-                Span::styled("▼ Unknown Protocol", Style::default().fg(Color::Green)),
-                Span::raw(format!(" (0x{ethertype:04X})")),
-            ]));
-        }
+    // Protocol-specific details using PacketDetail trait
+    let protocol_name = packet.protocol_name.clone();
+    lines.push(Line::from(vec![
+        Span::styled(format!("▼ {}", protocol_name), Style::default().fg(Color::Green)),
+    ]));
+    
+    for detail in &packet.details {
+        lines.push(Line::from(format!("  {detail}")));
     }
 
     Text::from(lines)

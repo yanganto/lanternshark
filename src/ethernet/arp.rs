@@ -3,6 +3,7 @@
 // https://www.iana.org/assignments/arp-parameters/arp-parameters.xhtml
 
 use super::{EtherType, MacAddress};
+use super::packet_detail::PacketDetail;
 use num_enum::FromPrimitive;
 use std::{fmt, net::Ipv4Addr};
 
@@ -178,5 +179,48 @@ impl fmt::Display for ArpOperation {
             Self::Reply => write!(f, "Reply"),
             Self::Unknown(val) => write!(f, "Unknown (0x{val:04x})"),
         }
+    }
+}
+
+impl PacketDetail for ArpPacket<'_> {
+    fn summary(&self) -> String {
+        format!(
+            "{}: Who has {}? Tell {}",
+            self.operation, self.target_ip, self.sender_ip
+        )
+    }
+
+    fn details(&self) -> Vec<String> {
+        vec![
+            format!("Hardware Type: {}", self.hardware_type),
+            format!("Protocol Type: {}", self.protocol_type),
+            format!("Hardware Length: {}", self.hardware_length),
+            format!("Protocol Length: {}", self.protocol_length),
+            format!("Operation: {}", self.operation),
+            format!("Sender MAC Address: {}", self.sender_mac),
+            format!("Sender IP Address: {}", self.sender_ip),
+            format!("Target MAC Address: {}", self.target_mac),
+            format!("Target IP Address: {}", self.target_ip),
+        ]
+    }
+
+    fn slug(&self) -> &'static str {
+        "ARP"
+    }
+
+    fn name(&self) -> &'static str {
+        "Address Resolution Protocol"
+    }
+
+    fn source(&self) -> Option<String> {
+        Some(self.sender_mac.to_string())
+    }
+
+    fn destination(&self) -> Option<String> {
+        Some(self.target_mac.to_string())
+    }
+
+    fn length(&self) -> usize {
+        self.raw.len()
     }
 }

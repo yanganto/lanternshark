@@ -3,6 +3,7 @@
 pub mod arp;
 pub mod ipv4;
 pub mod ipv6;
+pub mod packet_detail;
 pub mod rarp;
 
 use arp::{ArpPacket, ParseArpError};

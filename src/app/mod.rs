@@ -17,7 +17,7 @@ use std::{io, path::Path, thread, time::Duration};
 /// # Errors
 ///
 /// Returns an error if the TUI fails to initialize or render.
-pub fn run<T: Activated, P: AsRef<Path>>(mut capture: Capturing<T>, save_file: P) -> Result<(), io::Error> {
+pub fn run<T: Activated, P: AsRef<Path>>(mut capture: Capturing<T>, save_file: Option<P>) -> Result<(), io::Error> {
     // Initialize terminal
     let mut terminal = ratatui::init();
     terminal.clear()?;
@@ -58,10 +58,13 @@ pub fn run<T: Activated, P: AsRef<Path>>(mut capture: Capturing<T>, save_file: P
     ratatui::restore();
 
     // Save file if needed
-    if let Some(file) = save_file.as_ref().to_str() {
-        match capture.savefile(file) {
-            Err(e) => eprintln!("Failed to save capture to file {file}: {e}"),
-            Ok(_) => println!("Capture saved to file {file}"),
+    if let Some(file) = save_file {
+        let file_path = file.as_ref();
+        if let Some(file_str) = file_path.to_str() {
+            match capture.savefile(file_str) {
+                Err(e) => eprintln!("Failed to save capture to file {file_str}: {e}"),
+                Ok(_) => println!("Capture saved to file {file_str}"),
+            }
         }
     }
 

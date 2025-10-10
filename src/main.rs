@@ -34,7 +34,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let file = load.file;
             println!("Loading from file: {file}");
             let capture = Capturing::from_file(file)?;
-            run(capture, None)?;
+            run(capture, None::<String>)?;
         }
     }
     Ok(())
