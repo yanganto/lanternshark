@@ -118,7 +118,7 @@ impl<'a> Ipv4Packet<'a> {
     ///
     /// # Errors
     ///
-    /// See [`Ipv4PacketError`].
+    /// See [`ParseIpv4Error`].
     pub fn new(raw: &'a [u8]) -> Result<Self, ParseIpv4Error> {
         if raw.len() < 20 {
             return Err(ParseIpv4Error::PacketTooShort);

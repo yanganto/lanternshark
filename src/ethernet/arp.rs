@@ -86,7 +86,7 @@ impl<'a> ArpPacket<'a> {
     ///
     /// # Errors
     ///
-    /// See [`ArpPacketError`].
+    /// See [`ParseArpError`].
     pub fn new(raw: &'a [u8]) -> Result<Self, ParseArpError> {
         if raw.len() != 28 {
             return Err(ParseArpError::PacketLengthInvalid(raw.len()));
