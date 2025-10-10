@@ -124,7 +124,7 @@ impl<'a> TryFrom<&Packet<'a>> for EthernetPacket<'a> {
 }
 
 impl<'a> fmt::Display for EthernetPacket<'a> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let Self {
             timestamp,
             destination,
@@ -134,21 +134,27 @@ impl<'a> fmt::Display for EthernetPacket<'a> {
             raw: _,
         } = self;
         let inner = match ethertype {
-            // EtherTypes::Ipv4(packet) => format!("{packet}"),
-            EthernetPacketInner::Ipv4(_packet) => "IPv4 Packet".to_string(),
-            EthernetPacketInner::Arp(packet) => format!("{packet}"),
-            // EtherTypes::Rarp(packet) => format!("{packet}"),
-            EthernetPacketInner::Rarp(_packet) => "RARP Packet".to_string(),
-            // EtherTypes::Ipv6(packet) => format!("{packet}"),
-            EthernetPacketInner::Ipv6(_packet) => "IPv6 Packet".to_string(),
-            EthernetPacketInner::Unknown(unknown) => {
-                format!("Unknown (0x{:04x}): {} bytes", unknown.ethertype, unknown.data.len())
-            }
+            EthernetPacketInner::Ipv4(ipv4) => ipv4.to_string(),
+            EthernetPacketInner::Arp(arp) => arp.to_string(),
+            EthernetPacketInner::Rarp(rarp) => rarp.to_string(),
+            EthernetPacketInner::Ipv6(ipv6) => ipv6.to_string(),
+            EthernetPacketInner::Unknown(unknown) => unknown.to_string(),
         };
         write!(
             f,
             "[{timestamp}] {source} -> {destination}, {ethertype:?}, {} bytes\n{inner}",
             data.len()
+        )
+    }
+}
+
+impl<'a> fmt::Display for UnknownEthernetPacket<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Unknown Ethernet Packet (0x{:04x}): {} bytes",
+            self.ethertype,
+            self.data.len()
         )
     }
 }

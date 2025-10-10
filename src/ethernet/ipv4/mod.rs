@@ -1,7 +1,7 @@
 //! IPv4 packet parsing.
 // https://www.wikiwand.com/en/articles/IPv4
 
-use std::net::Ipv4Addr;
+use std::{fmt, net::Ipv4Addr};
 
 /// An IPv4 packet.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -144,6 +144,39 @@ impl<'a> Ipv4Packet<'a> {
             data,
             raw,
         })
+    }
+}
+
+impl<'a> fmt::Display for Ipv4Packet<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let Self {
+            total_length,
+            identification,
+            ttl,
+            inner,
+            header_checksum,
+            source,
+            destination,
+            ..
+        } = self;
+        write!(
+            f,
+            "IPv4 Packet: {source} -> {destination}, ID {identification:#06x}, TTL {ttl}, Header Checksum {header_checksum:#06x}, Total Length {total_length}\n{inner}",
+        )
+    }
+}
+
+impl<'a> fmt::Display for Ipv4PacketInner<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Ipv4PacketInner::Unknown(packet) => write!(f, "{packet}"),
+        }
+    }
+}
+
+impl fmt::Display for UnknownIpv4Packet<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Unknown Protocol (0x{:02x}): {} bytes", self.protocol, self.data.len())
     }
 }
 
