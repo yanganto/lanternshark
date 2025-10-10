@@ -1,15 +1,15 @@
 //! Ethernet packet parsing.
 
-mod arp;
-mod ipv4;
-mod ipv6;
-mod rarp;
+pub mod arp;
+pub mod ipv4;
+pub mod ipv6;
+pub mod rarp;
 
-pub use arp::{ArpPacket, ArpPacketError};
-pub use ipv4::{Ipv4Packet, Ipv4PacketError};
-pub use ipv6::Ipv6Packet;
+use arp::{ArpPacket, ArpPacketError};
+use ipv4::{Ipv4Packet, Ipv4PacketError};
+use ipv6::Ipv6Packet;
 use pcap::Packet;
-pub use rarp::RarpPacket;
+use rarp::RarpPacket;
 
 use chrono::DateTime;
 use std::fmt;

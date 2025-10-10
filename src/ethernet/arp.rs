@@ -35,9 +35,13 @@ pub struct ArpPacket<'a> {
 #[repr(u16)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive)]
 pub enum HardwareType {
+    /// Reserved.
     Reserved = 0,
+    /// Ethernet (10Mb).
     Ethernet = 1,
+    /// IEEE 802 Networks.
     IEEE802Networks = 6,
+    /// Unknown or unsupported hardware type.
     #[num_enum(catch_all)]
     Unknown(u16),
 }
@@ -46,11 +50,13 @@ pub enum HardwareType {
 #[repr(u16)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive)]
 pub enum ProtocolType {
+    /// Internet Protocol version 4 (IPv4)
     IPv4 = 0x0800,
     // The following should not happen
     // ARP = 0x0806,
     // RARP = 0x8035,
     // IPv6 = 0x86DD,
+    /// Unknown or unsupported protocol type.
     #[num_enum(catch_all)]
     Unknown(u16),
 }
@@ -59,8 +65,11 @@ pub enum ProtocolType {
 #[repr(u16)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive)]
 pub enum ArpOperation {
+    /// ARP Request
     Request = 1,
+    /// ARP Reply
     Reply = 2,
+    /// Unknown or unsupported operation code.
     #[num_enum(catch_all)]
     Unknown(u16),
 }
