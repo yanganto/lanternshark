@@ -2,6 +2,7 @@
 // https://www.wikiwand.com/en/articles/IPv4
 
 use std::{fmt, net::Ipv4Addr};
+use super::EtherType;
 
 /// An IPv4 packet.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -148,6 +149,10 @@ impl<'a> Ipv4Packet<'a> {
             raw,
         })
     }
+}
+
+impl<'a> EtherType for Ipv4Packet<'a> {
+    const ETHER_TYPE: u16 = 0x0800;
 }
 
 impl fmt::Display for Ipv4Packet<'_> {

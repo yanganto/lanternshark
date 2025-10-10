@@ -1,6 +1,7 @@
 //! RARP packet parsing.
 
 use std::fmt;
+use super::EtherType;
 
 /// An RARP packet.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -13,6 +14,10 @@ impl RarpPacket {
         // Placeholder implementation
         Self {}
     }
+}
+
+impl EtherType for RarpPacket {
+    const ETHER_TYPE: u16 = 0x8035;
 }
 
 impl fmt::Display for RarpPacket {

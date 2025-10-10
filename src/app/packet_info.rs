@@ -1,6 +1,6 @@
 //! Packet information model for display.
 
-use crate::ethernet::{EthernetPacket, EthernetPacketInner, MacAddress};
+use crate::ethernet::{arp::ArpPacket, ipv4::Ipv4Packet, ipv6::Ipv6Packet, rarp::RarpPacket, EtherType, EthernetPacket, EthernetPacketInner, MacAddress};
 use chrono::DateTime;
 
 /// Display information for a packet.
@@ -189,10 +189,10 @@ impl PacketInfo {
                     source: packet.source,
                     destination: packet.destination,
                     ethertype: match &packet.inner {
-                        EthernetPacketInner::Ipv4(_) => "IPv4 (0x0800)".to_string(),
-                        EthernetPacketInner::Arp(_) => "ARP (0x0806)".to_string(),
-                        EthernetPacketInner::Rarp(_) => "RARP (0x8035)".to_string(),
-                        EthernetPacketInner::Ipv6(_) => "IPv6 (0x86DD)".to_string(),
+                        EthernetPacketInner::Ipv4(_) => format!("IPv4 ({:04x})", Ipv4Packet::ETHER_TYPE),
+                        EthernetPacketInner::Arp(_) => format!("ARP (0x{:04x})", ArpPacket::ETHER_TYPE),
+                        EthernetPacketInner::Rarp(_) => format!("RARP (0x{:04x})", RarpPacket::ETHER_TYPE),
+                        EthernetPacketInner::Ipv6(_) => format!("IPv6 (0x{:04x})", Ipv6Packet::ETHER_TYPE),
                         EthernetPacketInner::Unknown(u) => format!("Unknown (0x{:04X})", u.ethertype),
                     },
                 },

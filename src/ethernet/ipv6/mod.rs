@@ -1,6 +1,7 @@
 //! IPv6 packet parsing.
 
 use std::fmt;
+use super::EtherType;
 
 /// An IPv6 packet.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -13,6 +14,10 @@ impl Ipv6Packet {
         // Placeholder implementation
         Self {}
     }
+}
+
+impl EtherType for Ipv6Packet {
+    const ETHER_TYPE: u16 = 0x86DD;
 }
 
 impl fmt::Display for Ipv6Packet {

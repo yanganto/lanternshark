@@ -35,6 +35,12 @@ pub struct EthernetPacket<'a> {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MacAddress(pub [u8; 6]);
 
+/// Trait requiring associated const ETHER_TYPE for packet types.
+pub trait EtherType {
+    /// The EtherType value associated with the packet type.
+    const ETHER_TYPE: u16;
+}
+
 /// An Ethernet packet of unknown or unsupported type.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UnknownEthernetPacket<'a> {
@@ -100,10 +106,10 @@ impl<'a> EthernetPacket<'a> {
         ]);
         let ethertype_raw = u16::from_be_bytes([header[12], header[13]]);
         let ethertype = match ethertype_raw {
-            0x0800 => EthernetPacketInner::Ipv4(Ipv4Packet::new(data)?), // Placeholder for actual IPv4 packet parsing
-            0x0806 => EthernetPacketInner::Arp(ArpPacket::new(data)?), // Placeholder for actual ARP packet parsing
-            0x8035 => EthernetPacketInner::Rarp(RarpPacket::new(data)), // Placeholder for actual RARP packet parsing
-            0x86DD => EthernetPacketInner::Ipv6(Ipv6Packet::new(data)), // Placeholder for actual IPv6 packet parsing
+            Ipv4Packet::ETHER_TYPE => EthernetPacketInner::Ipv4(Ipv4Packet::new(data)?), // Placeholder for actual IPv4 packet parsing
+            ArpPacket::ETHER_TYPE => EthernetPacketInner::Arp(ArpPacket::new(data)?), // Placeholder for actual ARP packet parsing
+            RarpPacket::ETHER_TYPE => EthernetPacketInner::Rarp(RarpPacket::new(data)), // Placeholder for actual RARP packet parsing
+            Ipv6Packet::ETHER_TYPE => EthernetPacketInner::Ipv6(Ipv6Packet::new(data)), // Placeholder for actual IPv6 packet parsing
             _ => EthernetPacketInner::Unknown(UnknownEthernetPacket {
                 ethertype: ethertype_raw,
                 data,

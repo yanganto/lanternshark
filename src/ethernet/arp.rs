@@ -2,7 +2,7 @@
 // https://www.wikiwand.com/en/articles/Address_Resolution_Protocol
 // https://www.iana.org/assignments/arp-parameters/arp-parameters.xhtml
 
-use super::MacAddress;
+use super::{EtherType, MacAddress};
 use num_enum::FromPrimitive;
 use std::{fmt, net::Ipv4Addr};
 
@@ -51,7 +51,7 @@ pub enum HardwareType {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive)]
 pub enum ProtocolType {
     /// Internet Protocol version 4 (IPv4)
-    IPv4 = 0x0800,
+    IPv4 = super::Ipv4Packet::ETHER_TYPE,
     // The following should not happen
     // ARP = 0x0806,
     // RARP = 0x8035,
@@ -118,6 +118,10 @@ impl<'a> ArpPacket<'a> {
             raw,
         })
     }
+}
+
+impl<'a> EtherType for ArpPacket<'a> {
+    const ETHER_TYPE: u16 = 0x0806;
 }
 
 impl From<ArpPacketError> for super::ParseEthernetError {
