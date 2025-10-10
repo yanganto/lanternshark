@@ -30,7 +30,7 @@ pub fn run<T: Activated>(mut capture: Capturing<T>) -> Result<(), io::Error> {
 
     // Main event loop
     loop {
-        // Try to capture a packet (non-blocking)
+        // Try to capture a packet (non-blocking since we've called `setnonblock`)
         if let Ok(packet) = capture.next_packet() {
             // Parse the packet
             if let Ok(ethernet_packet) = EthernetPacket::try_from(&packet) {

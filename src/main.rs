@@ -17,7 +17,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             for line in describe_device(&device) {
                 println!("  {line}");
             }
-            let capture = device.open()?;
+            let capture = device.open()?.setnonblock()?;
             run(capture)?;
         }
         SubCommands::List(_) => {

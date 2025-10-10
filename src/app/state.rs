@@ -47,24 +47,34 @@ impl App {
         self.packets.get(self.selected)
     }
 
-    /// Move selection up.
-    pub fn select_previous(&mut self) {
-        if self.selected > 0 {
-            self.selected -= 1;
+    /// Set the selected packet index.
+    pub fn set_selected(&mut self, index: usize) {
+        if index < self.packets.len() {
+            self.selected = index;
             self.table_state.select(Some(self.selected));
             self.details_scroll = 0;
             self.hex_scroll = 0;
         }
     }
 
+    /// Move selection by given offset.
+    pub fn move_selection(&mut self, offset: isize) {
+        let new_index = if offset.is_negative() {
+            self.selected.saturating_sub(offset.wrapping_abs() as usize)
+        } else {
+            self.selected.saturating_add(offset as usize)
+        };
+        self.set_selected(new_index);
+    }
+
+    /// Move selection up.
+    pub fn select_previous(&mut self) {
+        self.move_selection(-1);
+    }
+
     /// Move selection down.
     pub fn select_next(&mut self) {
-        if self.selected < self.packets.len().saturating_sub(1) {
-            self.selected += 1;
-            self.table_state.select(Some(self.selected));
-            self.details_scroll = 0;
-            self.hex_scroll = 0;
-        }
+        self.move_selection(1);
     }
 
     /// Scroll details view up.

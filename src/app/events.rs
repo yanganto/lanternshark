@@ -25,43 +25,23 @@ fn handle_key_event(app: &mut App, key: KeyEvent) {
         // Quit
         KeyCode::Char('q') | KeyCode::Char('Q') => app.quit(),
         KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => app.quit(),
-        
+
         // Navigate packet list
         KeyCode::Up | KeyCode::Char('k') => app.select_previous(),
         KeyCode::Down | KeyCode::Char('j') => app.select_next(),
-        KeyCode::PageUp => {
-            for _ in 0..10 {
-                app.select_previous();
-            }
-        }
-        KeyCode::PageDown => {
-            for _ in 0..10 {
-                app.select_next();
-            }
-        }
-        KeyCode::Home => {
-            app.selected = 0;
-            app.table_state.select(Some(0));
-            app.details_scroll = 0;
-            app.hex_scroll = 0;
-        }
-        KeyCode::End => {
-            if !app.packets.is_empty() {
-                app.selected = app.packets.len() - 1;
-                app.table_state.select(Some(app.selected));
-                app.details_scroll = 0;
-                app.hex_scroll = 0;
-            }
-        }
-        
+        KeyCode::PageUp => app.move_selection(-10),
+        KeyCode::PageDown => app.move_selection(10),
+        KeyCode::Home => app.set_selected(0),
+        KeyCode::End => app.set_selected(app.packets.len().saturating_sub(1)),
+
         // Scroll details view
         KeyCode::Char('w') => app.scroll_details_up(),
         KeyCode::Char('s') => app.scroll_details_down(),
-        
+
         // Scroll hex dump
         KeyCode::Char('e') => app.scroll_hex_up(),
         KeyCode::Char('d') => app.scroll_hex_down(),
-        
+
         _ => {}
     }
 }

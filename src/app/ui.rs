@@ -31,8 +31,7 @@ pub fn render(frame: &mut Frame, app: &mut App) {
 /// Render the packet list table.
 fn render_packet_list(frame: &mut Frame, app: &mut App, area: Rect) {
     let header = Row::new(vec!["No.", "Time", "Source", "Destination", "Protocol", "Length", "Info"])
-        .style(Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))
-        .bottom_margin(1);
+        .style(Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD));
 
     let rows: Vec<Row> = app
         .packets
@@ -66,7 +65,7 @@ fn render_packet_list(frame: &mut Frame, app: &mut App, area: Rect) {
     .header(header)
     .block(
         Block::default()
-            .title("Captured Packets")
+            .title("Captured Packets (↑/↓, Wheel, j/k, PgUp/PgDn, Home/End)")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::Cyan)),
     )
@@ -91,7 +90,7 @@ fn render_packet_details(frame: &mut Frame, app: &App, area: Rect) {
     let paragraph = Paragraph::new(text)
         .block(
             Block::default()
-                .title("Packet Details")
+                .title("Packet Details (w/s to scroll)")
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(Color::Cyan)),
         )
@@ -107,8 +106,8 @@ fn format_packet_details(packet: &PacketInfo) -> Text<'static> {
 
     // Ethernet frame
     lines.push(Line::from(vec![
-        Span::styled("▼ Ethernet II, Src: ", Style::default().fg(Color::Green)),
-        Span::raw(format!("{}, Dst: ", packet.packet.ethernet.source)),
+        Span::styled("▼ Ethernet II", Style::default().fg(Color::Green)),
+        Span::raw(format!(", Src: {}, Dst: ", packet.packet.ethernet.source)),
         Span::raw(format!("{}", packet.packet.ethernet.destination)),
     ]));
     lines.push(Line::from(format!(
@@ -137,9 +136,8 @@ fn format_packet_details(packet: &PacketInfo) -> Text<'static> {
             target_ip,
         } => {
             lines.push(Line::from(vec![
-                Span::styled("▼ Address Resolution Protocol (", Style::default().fg(Color::Green)),
-                Span::raw(format!("{operation}")),
-                Span::raw(")"),
+                Span::styled("▼ Address Resolution Protocol", Style::default().fg(Color::Green)),
+                Span::raw(format!(" ({operation})")),
             ]));
             lines.push(Line::from(format!("  Hardware type: {hardware_type}")));
             lines.push(Line::from(format!("  Protocol type: {protocol_type}")));
@@ -159,8 +157,8 @@ fn format_packet_details(packet: &PacketInfo) -> Text<'static> {
             destination,
         } => {
             lines.push(Line::from(vec![
-                Span::styled("▼ Internet Protocol Version 4, Src: ", Style::default().fg(Color::Green)),
-                Span::raw(format!("{source}, Dst: {destination}")),
+                Span::styled("▼ Internet Protocol Version 4", Style::default().fg(Color::Green)),
+                Span::raw(format!(", Src: {source}, Dst: {destination}")),
             ]));
             lines.push(Line::from(format!("  Version: {version}")));
             lines.push(Line::from(format!(
@@ -196,8 +194,8 @@ fn format_packet_details(packet: &PacketInfo) -> Text<'static> {
         }
         ProtocolDetail::Unknown { ethertype } => {
             lines.push(Line::from(vec![
-                Span::styled("▼ Unknown Protocol (0x", Style::default().fg(Color::Green)),
-                Span::raw(format!("{ethertype:04X})")),
+                Span::styled("▼ Unknown Protocol", Style::default().fg(Color::Green)),
+                Span::raw(format!(" (0x{ethertype:04X})")),
             ]));
         }
     }
@@ -216,7 +214,7 @@ fn render_hex_dump(frame: &mut Frame, app: &App, area: Rect) {
     let paragraph = Paragraph::new(text)
         .block(
             Block::default()
-                .title("Packet Bytes")
+                .title("Packet Bytes (e/d to scroll)")
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(Color::Cyan)),
         )
@@ -284,16 +282,13 @@ fn format_hex_dump(data: &[u8]) -> Text<'static> {
 /// Render the help bar.
 fn render_help(frame: &mut Frame, area: Rect) {
     let help_text = Line::from(vec![
-        Span::styled("Navigation: ", Style::default().fg(Color::Yellow)),
-        Span::raw("↑/↓ or j/k: Select packet | "),
-        Span::raw("PgUp/PgDown: Fast scroll | "),
-        Span::raw("Home/End | "),
-        Span::styled("Details: ", Style::default().fg(Color::Yellow)),
-        Span::raw("w/s: Scroll | "),
-        Span::styled("Hex: ", Style::default().fg(Color::Yellow)),
-        Span::raw("e/d: Scroll | "),
-        Span::styled("q: ", Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),
-        Span::styled("Quit", Style::default().fg(Color::Red)),
+        Span::styled("termshark", Style::default().fg(Color::Cyan)),
+        Span::styled(" | ", Style::default().fg(Color::DarkGray)),
+        Span::styled("Press ", Style::default().fg(Color::DarkGray)),
+        Span::styled("q", Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),
+        Span::styled(" or ", Style::default().fg(Color::DarkGray)),
+        Span::styled("Ctrl+C", Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),
+        Span::styled(" to quit", Style::default().fg(Color::DarkGray)),
     ]);
 
     let paragraph = Paragraph::new(help_text)
