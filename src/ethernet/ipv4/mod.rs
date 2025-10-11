@@ -34,9 +34,9 @@ pub struct Ipv4Packet<'a> {
     pub inner: Ipv4PacketInner<'a>,
     /// Header Checksum.
     pub header_checksum: u16,
-    /// Source IP address.
+    /// Source IP address. 32 bits.
     pub source: Ipv4Addr,
-    /// Destination IP address.
+    /// Destination IP address. 32 bits.
     pub destination: Ipv4Addr,
     /// Options.
     pub options: &'a [u8],
@@ -218,7 +218,7 @@ impl fmt::Display for Ipv4Packet<'_> {
         } = self;
         write!(
             f,
-            "IPv4 Packet: {source} -> {destination}, ID {identification:#06x}, TTL {ttl}, Header Checksum {header_checksum:#06x}, Total Length {total_length}\n{inner}",
+            "IPv4: {source} -> {destination}, ID {identification:#06x}, TTL {ttl}, Header Checksum {header_checksum:#06x}, Total Length {total_length}\n{inner}",
         )
     }
 }

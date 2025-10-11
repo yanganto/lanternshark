@@ -142,7 +142,7 @@ impl PacketInfo {
                         EthernetPacketInner::Ipv4(_) => format!("IPv4 (0x{:04x})", Ipv4Packet::ETHER_TYPE),
                         EthernetPacketInner::Arp(_) => format!("ARP (0x{:04x})", ArpPacket::ETHER_TYPE),
                         EthernetPacketInner::Ipv6(_) => format!("IPv6 (0x{:04x})", Ipv6Packet::ETHER_TYPE),
-                        EthernetPacketInner::Unknown(u) => format!("Unknown (0x{:04X})", u.ethertype),
+                        EthernetPacketInner::Unknown(u) => format!("Unknown (0x{:04x})", u.ethertype),
                     },
                 },
             },
