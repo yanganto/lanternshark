@@ -161,6 +161,7 @@ fn format_packet_details(packet: &PacketInfo) -> Text<'static> {
     for layer in &packet.layers {
         lines.push(Line::from(vec![
             Span::styled(format!("▼ {}", layer.name), Style::default().fg(Color::Green)),
+            Span::raw(format!(", {}", layer.summary)),
         ]));
 
         for detail in &layer.details {
@@ -168,9 +169,7 @@ fn format_packet_details(packet: &PacketInfo) -> Text<'static> {
         }
 
         // Add spacing between layers
-        if packet.layers.len() > 1 {
-            lines.push(Line::from(""));
-        }
+        lines.push(Line::from(""));
     }
 
     Text::from(lines)

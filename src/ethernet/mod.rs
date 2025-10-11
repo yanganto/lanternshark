@@ -187,6 +187,58 @@ impl fmt::Display for MacAddress {
     }
 }
 
+impl PacketDetail for EthernetPacket<'_> {
+    fn summary(&self) -> String {
+        format!(
+            "Src: {}, Dst: {}",
+            self.source, self.destination
+        )
+    }
+
+    fn details(&self) -> Vec<String> {
+        let (slug, ether_type) = match &self.inner {
+            EthernetPacketInner::Ipv4(ipv4) => (ipv4.slug(), Ipv4Packet::ETHER_TYPE),
+            EthernetPacketInner::Arp(arp) => (arp.slug(), ArpPacket::ETHER_TYPE),
+            EthernetPacketInner::Ipv6(ipv6) => (ipv6.slug(), Ipv6Packet::ETHER_TYPE),
+            EthernetPacketInner::Unknown(unknown) => (unknown.slug(), unknown.ethertype),
+        };
+        vec![
+            format!("Destination: {}", self.destination),
+            format!("Source: {}", self.source),
+            format!("Type: {slug} (0x{ether_type:04x})"),
+        ]
+    }
+
+    fn slug(&self) -> &'static str {
+        "ETHERNET"
+    }
+
+    fn name(&self) -> &'static str {
+        "Ethernet II"
+    }
+
+    fn source(&self) -> String {
+        self.source.to_string()
+    }
+
+    fn destination(&self) -> String {
+        self.destination.to_string()
+    }
+
+    fn length(&self) -> usize {
+        self.raw.len()
+    }
+
+    fn inner(&self) -> Option<&dyn PacketDetail> {
+        match &self.inner {
+            EthernetPacketInner::Ipv4(ipv4) => Some(ipv4),
+            EthernetPacketInner::Arp(arp) => Some(arp),
+            EthernetPacketInner::Ipv6(ipv6) => Some(ipv6),
+            EthernetPacketInner::Unknown(_) => None,
+        }
+    }
+}
+
 impl PacketDetail for UnknownEthernetPacket<'_> {
     fn summary(&self) -> String {
         format!("Unknown Ethernet Packet (0x{:04x})", self.ethertype)
