@@ -308,6 +308,15 @@ impl PacketDetail for Ipv4Packet<'_> {
     fn length(&self) -> usize {
         self.raw.len()
     }
+
+    fn inner(&self) -> Option<&dyn PacketDetail> {
+        match &self.inner {
+            Ipv4PacketInner::Icmp(icmp) => Some(icmp),
+            Ipv4PacketInner::Tcp(tcp) => Some(tcp),
+            Ipv4PacketInner::Udp(udp) => Some(udp),
+            Ipv4PacketInner::Unknown(_) => None,
+        }
+    }
 }
 
 impl From<ParseIpv4Error> for super::ParseEthernetError {

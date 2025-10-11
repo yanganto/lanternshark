@@ -123,14 +123,20 @@ fn format_packet_details(packet: &PacketInfo) -> Text<'static> {
     )));
     lines.push(Line::from(""));
 
-    // Protocol-specific details using PacketDetail trait
-    let protocol_name = packet.protocol_name.clone();
-    lines.push(Line::from(vec![
-        Span::styled(format!("▼ {}", protocol_name), Style::default().fg(Color::Green)),
-    ]));
-    
-    for detail in &packet.details {
-        lines.push(Line::from(format!("  {detail}")));
+    // Display all protocol layers collected via the linked-list traversal
+    for layer in &packet.layers {
+        lines.push(Line::from(vec![
+            Span::styled(format!("▼ {}", layer.name), Style::default().fg(Color::Green)),
+        ]));
+
+        for detail in &layer.details {
+            lines.push(Line::from(format!("  {detail}")));
+        }
+
+        // Add spacing between layers
+        if packet.layers.len() > 1 {
+            lines.push(Line::from(""));
+        }
     }
 
     Text::from(lines)

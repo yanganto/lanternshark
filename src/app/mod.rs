@@ -29,15 +29,34 @@ pub fn run<T: Activated, P: AsRef<Path>>(mut capture: Capturing<T>, save_file: O
     // Main event loop
     loop {
         // Try to capture a packet (non-blocking since we've called `setnonblock`)
-        if let Ok(packet) = capture.next_packet() {
-            // Parse the packet
-            if let Ok(ethernet_packet) = EthernetPacket::try_from(&packet) {
-                // Create packet info and add to app
-                let packet_info = PacketInfo::from_ethernet(&ethernet_packet, packet_number);
-                app.add_packet(packet_info);
-                packet_number += 1;
+        // if let Ok(packet) = capture.next_packet() {
+        //     // Parse the packet
+        //     if let Ok(ethernet_packet) = EthernetPacket::try_from(&packet) {
+        //         // Create packet info and add to app
+        //         let packet_info = PacketInfo::from_ethernet(&ethernet_packet, packet_number);
+        //         app.add_packet(packet_info);
+        //         packet_number += 1;
+        //     }
+        // }
+        match capture.next_packet() {
+            Ok(packet) => match EthernetPacket::try_from(&packet) {
+                Ok(ethernet_packet) => {
+                    // Create packet info and add to app
+                    let packet_info = PacketInfo::from_ethernet(&ethernet_packet, packet_number);
+                    app.add_packet(packet_info);
+                    packet_number += 1;
+                }
+                Err(e) => {
+                    eprintln!("Failed to parse Ethernet packet: {e:?}");
+                }
+            },
+            Err(pcap::Error::NoMorePackets) | Err(pcap::Error::TimeoutExpired) => {
+                // No packets available right now, continue the loop
             }
-        }
+            Err(e) => {
+                eprintln!("Error capturing packet: {e:?}");
+            }
+        };
 
         // Render UI
         terminal.draw(|frame| ui::render(frame, &mut app))?;
@@ -51,7 +70,7 @@ pub fn run<T: Activated, P: AsRef<Path>>(mut capture: Capturing<T>, save_file: O
         }
 
         // Small delay to prevent busy waiting
-        thread::sleep(Duration::from_millis(100));
+        thread::sleep(Duration::from_millis(10));
     }
 
     // Restore terminal

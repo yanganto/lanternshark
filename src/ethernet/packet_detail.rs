@@ -33,4 +33,11 @@ pub trait PacketDetail {
 
     /// Get the packet length in bytes.
     fn length(&self) -> usize;
+
+    /// Get the inner protocol layer, if any.
+    /// This allows traversing the packet layers like a linked list.
+    /// Example: IPv4 → ICMP, TCP → HTTP
+    fn inner(&self) -> Option<&dyn PacketDetail> {
+        None
+    }
 }

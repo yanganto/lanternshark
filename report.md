@@ -14,6 +14,7 @@
     - [ ] `RarpPacket`
     - [ ] `Ipv6Packet`
     - [x] `UnknownEthernetPacket`
+HTTP/HTTPS, FTP, DNS?
 
 ## 🖼️ TUI
 
