@@ -77,8 +77,8 @@ pub enum ArpOperation {
 /// Possible errors when parsing an ARP packet.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ParseArpError {
-    /// The packet length is not 28 bytes.
-    PacketLengthInvalid(usize),
+    /// The packet is too short to be a valid ARP packet.
+    PacketTooShort(usize),
 }
 
 impl<'a> ArpPacket<'a> {
@@ -88,8 +88,8 @@ impl<'a> ArpPacket<'a> {
     ///
     /// See [`ParseArpError`].
     pub fn new(raw: &'a [u8]) -> Result<Self, ParseArpError> {
-        if raw.len() != 28 {
-            return Err(ParseArpError::PacketLengthInvalid(raw.len()));
+        if raw.len() <= 28 {
+            return Err(ParseArpError::PacketTooShort(raw.len()));
         }
         let hardware_type = u16::from_be_bytes([raw[0], raw[1]]);
         let hardware_type = HardwareType::from(hardware_type);
@@ -183,10 +183,14 @@ impl fmt::Display for ArpOperation {
 
 impl PacketDetail for ArpPacket<'_> {
     fn summary(&self) -> String {
-        format!(
-            "{}: Who has {}? Tell {}",
-            self.operation, self.target_ip, self.sender_ip
-        )
+        match self.operation {
+            ArpOperation::Request => format!("Who has {}? Tell {}", self.target_ip, self.sender_ip),
+            ArpOperation::Reply => format!("{} is at {}", self.sender_ip, self.sender_mac),
+            ArpOperation::Unknown(_) => format!(
+                "{}: {} ({}) -> {} ({})",
+                self.operation, self.sender_ip, self.sender_mac, self.target_ip, self.target_mac
+            ),
+        }
     }
 
     fn details(&self) -> Vec<String> {

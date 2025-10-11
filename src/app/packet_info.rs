@@ -96,55 +96,30 @@ impl PacketInfo {
         let timestamp = packet.timestamp;
         let length = packet.raw.len();
 
-        // Determine the root protocol and collect all layers via linked list traversal
-        let (source, destination, protocol, info, root_protocol) = match &packet.inner {
-            EthernetPacketInner::Arp(arp) => {
-                (
-                    arp.source(),
-                    arp.destination(),
-                    arp.slug().to_string(),
-                    arp.summary(),
-                    arp as &dyn PacketDetail,
-                )
-            }
-            EthernetPacketInner::Ipv4(ipv4) => {
-                // For IPv4 packets, determine the innermost protocol for the table display
-                let (protocol, info) = Self::get_innermost_protocol_info(ipv4);
-                (
-                    ipv4.source(),
-                    ipv4.destination(),
-                    protocol,
-                    info,
-                    ipv4 as &dyn PacketDetail,
-                )
-            }
-            EthernetPacketInner::Ipv6(ipv6) => {
-                (
-                    packet.source.to_string(),
-                    packet.destination.to_string(),
-                    ipv6.slug().to_string(),
-                    ipv6.summary(),
-                    ipv6 as &dyn PacketDetail,
-                )
-            }
-            EthernetPacketInner::Rarp(rarp) => {
-                (
-                    packet.source.to_string(),
-                    packet.destination.to_string(),
-                    rarp.slug().to_string(),
-                    rarp.summary(),
-                    rarp as &dyn PacketDetail,
-                )
-            }
-            EthernetPacketInner::Unknown(unknown) => {
-                (
-                    packet.source.to_string(),
-                    packet.destination.to_string(),
-                    unknown.slug().to_string(),
-                    unknown.summary(),
-                    unknown as &dyn PacketDetail,
-                )
-            }
+        // Get the root protocol (all inner types now implement PacketDetail)
+        let root_protocol: &dyn PacketDetail = match &packet.inner {
+            EthernetPacketInner::Arp(arp) => arp,
+            EthernetPacketInner::Ipv4(ipv4) => ipv4,
+            EthernetPacketInner::Ipv6(ipv6) => ipv6,
+            EthernetPacketInner::Rarp(rarp) => rarp,
+            EthernetPacketInner::Unknown(unknown) => unknown,
+        };
+
+        // For IPv4 packets, use the innermost protocol for table display
+        // (e.g., show "ICMP" instead of "IPv4" for ICMP packets)
+        let (protocol, info) = if let EthernetPacketInner::Ipv4(ipv4) = &packet.inner {
+            Self::get_innermost_protocol_info(ipv4)
+        } else {
+            (root_protocol.slug().to_string(), root_protocol.summary())
+        };
+
+        // Determine source and destination addresses
+        let (source, destination) = match &packet.inner {
+            EthernetPacketInner::Arp(arp) => (arp.source(), arp.destination()),
+            EthernetPacketInner::Ipv4(ipv4) => (ipv4.source(), ipv4.destination()),
+            EthernetPacketInner::Ipv6(ipv6) => (ipv6.source(), ipv6.destination()),
+            // For RARP and Unknown, fall back to MAC addresses
+            _ => (packet.source.to_string(), packet.destination.to_string()),
         };
 
         // Collect all layers by traversing the inner() linked list
