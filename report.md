@@ -7,8 +7,8 @@
 - [x] `EthernetPacket`
     - [x] `Ipv4Packet`
         - [x] `ICMPPacket`
-        - [ ] `TCPPacket`
-        - [ ] `UDPPacket`
+        - [x] `TCPPacket`
+        - [x] `UDPPacket`
         - [x] `UnknownIpv4Packet`
     - [x] `ArpPacket`
     - [ ] `RarpPacket`
