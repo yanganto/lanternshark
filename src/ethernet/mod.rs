@@ -4,14 +4,12 @@ pub mod arp;
 pub mod ipv4;
 pub mod ipv6;
 mod packet_detail;
-pub mod rarp;
 
 use arp::{ArpPacket, ParseArpError};
 use ipv4::{Ipv4Packet, ParseIpv4Error};
 use ipv6::{Ipv6Packet, ParseIpv6Error};
 use pcap::Packet;
 pub use packet_detail::PacketDetail;
-use rarp::{RarpPacket, ParseRarpError};
 
 use chrono::DateTime;
 use std::fmt;
@@ -61,8 +59,6 @@ pub enum EthernetPacketInner<'a> {
     Ipv4(Ipv4Packet<'a>),
     /// Address Resolution Protocol (0x0806)
     Arp(ArpPacket<'a>),
-    /// Reverse Address Resolution Protocol (0x8035)
-    Rarp(RarpPacket<'a>),
     /// Internet Protocol version 6 (0x86DD)
     Ipv6(Ipv6Packet<'a>),
     // TODO: 0x8100 — VLAN-tagged frame (IEEE 802.1Q)?
@@ -84,8 +80,6 @@ pub enum ParseEthernetError {
     ParseIpv4Error(ParseIpv4Error),
     /// Error parsing inner IPv6 packet.
     ParseIpv6Error(ParseIpv6Error),
-    /// Error parsing inner RARP packet.
-    ParseRarpError(ParseRarpError),
 }
 
 impl<'a> EthernetPacket<'a> {
@@ -116,7 +110,6 @@ impl<'a> EthernetPacket<'a> {
         let ethertype = match ethertype_raw {
             Ipv4Packet::ETHER_TYPE => EthernetPacketInner::Ipv4(Ipv4Packet::new(data)?), // Placeholder for actual IPv4 packet parsing
             ArpPacket::ETHER_TYPE => EthernetPacketInner::Arp(ArpPacket::new(data)?), // Placeholder for actual ARP packet parsing
-            RarpPacket::ETHER_TYPE => EthernetPacketInner::Rarp(RarpPacket::new(data)?), // Placeholder for actual RARP packet parsing
             Ipv6Packet::ETHER_TYPE => EthernetPacketInner::Ipv6(Ipv6Packet::new(data)?), // Placeholder for actual IPv6 packet parsing
             _ => EthernetPacketInner::Unknown(UnknownEthernetPacket {
                 ethertype: ethertype_raw,
@@ -166,7 +159,6 @@ impl fmt::Display for EthernetPacketInner<'_> {
         match self {
             Self::Ipv4(ipv4) => ipv4.fmt(f),
             Self::Arp(arp) => arp.fmt(f),
-            Self::Rarp(rarp) => rarp.fmt(f),
             Self::Ipv6(ipv6) => ipv6.fmt(f),
             Self::Unknown(unknown) => unknown.fmt(f),
         }

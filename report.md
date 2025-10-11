@@ -11,10 +11,10 @@
         - [x] `UDPPacket`
         - [x] `UnknownIpv4Packet`
     - [x] `ArpPacket`
-    - [ ] `RarpPacket`
     - [ ] `Ipv6Packet`
     - [x] `UnknownEthernetPacket`
-HTTP/HTTPS, FTP, DNS?
+
+IGMP, ICMP, HTTP/HTTPS, FTP, DNS?
 
 ## 🖼️ TUI
 

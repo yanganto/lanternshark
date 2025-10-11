@@ -54,7 +54,6 @@ pub enum ProtocolType {
     IPv4 = super::Ipv4Packet::ETHER_TYPE,
     // The following should not happen
     // ARP = 0x0806,
-    // RARP = 0x8035,
     // IPv6 = 0x86DD,
     /// Unknown or unsupported protocol type.
     #[num_enum(catch_all)]

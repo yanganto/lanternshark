@@ -1,7 +1,7 @@
 //! Packet information model for display.
 
 use crate::ethernet::{
-    arp::ArpPacket, ipv4::Ipv4Packet, ipv6::Ipv6Packet, rarp::RarpPacket, EtherType,
+    arp::ArpPacket, ipv4::Ipv4Packet, ipv6::Ipv6Packet, EtherType,
     EthernetPacket, EthernetPacketInner, MacAddress, PacketDetail,
 };
 use chrono::DateTime;
@@ -101,7 +101,6 @@ impl PacketInfo {
             EthernetPacketInner::Arp(arp) => arp,
             EthernetPacketInner::Ipv4(ipv4) => ipv4,
             EthernetPacketInner::Ipv6(ipv6) => ipv6,
-            EthernetPacketInner::Rarp(rarp) => rarp,
             EthernetPacketInner::Unknown(unknown) => unknown,
         };
 
@@ -118,7 +117,7 @@ impl PacketInfo {
             EthernetPacketInner::Arp(arp) => (arp.source(), arp.destination()),
             EthernetPacketInner::Ipv4(ipv4) => (ipv4.source(), ipv4.destination()),
             EthernetPacketInner::Ipv6(ipv6) => (ipv6.source(), ipv6.destination()),
-            // For RARP and Unknown, fall back to MAC addresses
+            // For others, fall back to MAC addresses
             _ => (packet.source.to_string(), packet.destination.to_string()),
         };
 
@@ -142,7 +141,6 @@ impl PacketInfo {
                     ethertype: match &packet.inner {
                         EthernetPacketInner::Ipv4(_) => format!("IPv4 (0x{:04x})", Ipv4Packet::ETHER_TYPE),
                         EthernetPacketInner::Arp(_) => format!("ARP (0x{:04x})", ArpPacket::ETHER_TYPE),
-                        EthernetPacketInner::Rarp(_) => format!("RARP (0x{:04x})", RarpPacket::ETHER_TYPE),
                         EthernetPacketInner::Ipv6(_) => format!("IPv6 (0x{:04x})", Ipv6Packet::ETHER_TYPE),
                         EthernetPacketInner::Unknown(u) => format!("Unknown (0x{:04X})", u.ethertype),
                     },
