@@ -3,10 +3,10 @@
 use super::packet_info::PacketInfo;
 use super::state::App;
 use ratatui::{
-    layout::{Constraint, Direction, Layout, Rect},
+    layout::{Constraint, Direction, Layout, Margin, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span, Text},
-    widgets::{Block, Borders, Paragraph, Row, Table, Wrap},
+    widgets::{Block, Borders, Paragraph, Row, Scrollbar, ScrollbarOrientation, ScrollbarState, Table, Wrap},
     Frame,
 };
 
@@ -77,6 +77,21 @@ fn render_packet_list(frame: &mut Frame, app: &mut App, area: Rect) {
     .highlight_symbol(">> ");
 
     frame.render_stateful_widget(table, area, &mut app.table_state);
+
+    // Render scrollbar for packet list
+    let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight)
+        .begin_symbol(Some("↑"))
+        .end_symbol(Some("↓"))
+        .style(Style::default().fg(Color::Cyan));
+
+    let mut scrollbar_state = ScrollbarState::new(app.packets.len())
+        .position(app.selected);
+
+    frame.render_stateful_widget(
+        scrollbar,
+        area.inner(Margin { vertical: 1, horizontal: 0 }),
+        &mut scrollbar_state,
+    );
 }
 
 /// Render the packet details panel.
@@ -86,6 +101,8 @@ fn render_packet_details(frame: &mut Frame, app: &App, area: Rect) {
     } else {
         Text::from("No packet selected")
     };
+
+    let total_lines = text.lines.len();
 
     let paragraph = Paragraph::new(text)
         .block(
@@ -98,6 +115,23 @@ fn render_packet_details(frame: &mut Frame, app: &App, area: Rect) {
         .scroll((app.details_scroll, 0));
 
     frame.render_widget(paragraph, area);
+
+    // Render scrollbar for packet details
+    if total_lines > 0 {
+        let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight)
+            .begin_symbol(Some("↑"))
+            .end_symbol(Some("↓"))
+            .style(Style::default().fg(Color::Cyan));
+
+        let mut scrollbar_state = ScrollbarState::new(total_lines.saturating_sub(area.height.saturating_sub(2) as usize))
+            .position(app.details_scroll as usize);
+
+        frame.render_stateful_widget(
+            scrollbar,
+            area.inner(Margin { vertical: 1, horizontal: 0 }),
+            &mut scrollbar_state,
+        );
+    }
 }
 
 /// Format packet details for display.
@@ -150,6 +184,8 @@ fn render_hex_dump(frame: &mut Frame, app: &App, area: Rect) {
         Text::from("No packet selected")
     };
 
+    let total_lines = text.lines.len();
+
     let paragraph = Paragraph::new(text)
         .block(
             Block::default()
@@ -160,6 +196,23 @@ fn render_hex_dump(frame: &mut Frame, app: &App, area: Rect) {
         .scroll((app.hex_scroll, 0));
 
     frame.render_widget(paragraph, area);
+
+    // Render scrollbar for hex dump
+    if total_lines > 0 {
+        let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight)
+            .begin_symbol(Some("↑"))
+            .end_symbol(Some("↓"))
+            .style(Style::default().fg(Color::Cyan));
+
+        let mut scrollbar_state = ScrollbarState::new(total_lines.saturating_sub(area.height.saturating_sub(2) as usize))
+            .position(app.hex_scroll as usize);
+
+        frame.render_stateful_widget(
+            scrollbar,
+            area.inner(Margin { vertical: 1, horizontal: 0 }),
+            &mut scrollbar_state,
+        );
+    }
 }
 
 /// Format raw bytes as hex dump.
