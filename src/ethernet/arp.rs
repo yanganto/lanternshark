@@ -2,8 +2,7 @@
 // https://www.wikiwand.com/en/articles/Address_Resolution_Protocol
 // https://www.iana.org/assignments/arp-parameters/arp-parameters.xhtml
 
-use super::{EtherType, MacAddress};
-use super::packet_detail::PacketDetail;
+use super::{EtherType, MacAddress, packet_detail::PacketDetail};
 use num_enum::FromPrimitive;
 use std::{fmt, net::Ipv4Addr};
 
@@ -212,12 +211,12 @@ impl PacketDetail for ArpPacket<'_> {
         "Address Resolution Protocol"
     }
 
-    fn source(&self) -> Option<String> {
-        Some(self.sender_mac.to_string())
+    fn source(&self) -> String {
+        self.sender_mac.to_string()
     }
 
-    fn destination(&self) -> Option<String> {
-        Some(self.target_mac.to_string())
+    fn destination(&self) -> String {
+        self.target_mac.to_string()
     }
 
     fn length(&self) -> usize {

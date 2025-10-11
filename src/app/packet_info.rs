@@ -60,8 +60,8 @@ impl PacketInfo {
 
         let (source, destination, protocol, info, protocol_name, details) = match &packet.inner {
             EthernetPacketInner::Arp(arp) => {
-                let source = arp.source().unwrap_or_else(|| packet.source.to_string());
-                let destination = arp.destination().unwrap_or_else(|| packet.destination.to_string());
+                let source = arp.source();
+                let destination = arp.destination();
                 let protocol = arp.slug().to_string();
                 let info = arp.summary();
                 let protocol_name = arp.name().to_string();
@@ -69,8 +69,8 @@ impl PacketInfo {
                 (source, destination, protocol, info, protocol_name, details)
             }
             EthernetPacketInner::Ipv4(ipv4) => {
-                let source = ipv4.source().unwrap_or_else(|| packet.source.to_string());
-                let destination = ipv4.destination().unwrap_or_else(|| packet.destination.to_string());
+                let source = ipv4.source();
+                let destination = ipv4.destination();
                 let protocol = ipv4.slug().to_string();
                 let info = ipv4.summary();
                 let protocol_name = ipv4.name().to_string();

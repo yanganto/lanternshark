@@ -1,8 +1,7 @@
 //! TCP packet parsing.
 
 use std::fmt;
-use super::{Protocol, ParseIpv4Error};
-use crate::ethernet::packet_detail::PacketDetail;
+use super::{Protocol, ParseIpv4Error, PacketDetail};
 
 /// A TCP packet.
 #[derive(Debug, Clone, PartialEq, Eq)]

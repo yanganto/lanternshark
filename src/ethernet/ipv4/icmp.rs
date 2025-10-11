@@ -3,8 +3,7 @@
 
 use num_enum::FromPrimitive;
 use std::fmt;
-use super::{Protocol, ParseIpv4Error};
-use crate::ethernet::packet_detail::PacketDetail;
+use super::{Protocol, ParseIpv4Error, PacketDetail};
 
 /// A ICMP packet.
 #[derive(Debug, Clone, PartialEq, Eq)]

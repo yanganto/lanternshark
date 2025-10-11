@@ -297,12 +297,12 @@ impl PacketDetail for Ipv4Packet<'_> {
         "Internet Protocol Version 4"
     }
 
-    fn source(&self) -> Option<String> {
-        Some(self.source.to_string())
+    fn source(&self) -> String {
+        self.source.to_string()
     }
 
-    fn destination(&self) -> Option<String> {
-        Some(self.destination.to_string())
+    fn destination(&self) -> String {
+        self.destination.to_string()
     }
 
     fn length(&self) -> usize {
