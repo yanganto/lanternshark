@@ -6,8 +6,7 @@ pub mod tcp;
 pub mod udp;
 
 use std::{fmt, net::Ipv4Addr};
-use super::EtherType;
-use super::packet_detail::PacketDetail;
+use super::{EtherType, PacketDetail};
 use icmp::{IcmpPacket, ParseIcmpError};
 use tcp::{TcpPacket, ParseTcpError};
 use udp::{UdpPacket, ParseUdpError};

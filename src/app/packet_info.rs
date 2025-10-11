@@ -2,7 +2,7 @@
 
 use crate::ethernet::{
     arp::ArpPacket, ipv4::Ipv4Packet, ipv6::Ipv6Packet, rarp::RarpPacket, EtherType,
-    EthernetPacket, EthernetPacketInner, MacAddress, packet_detail::PacketDetail,
+    EthernetPacket, EthernetPacketInner, MacAddress, PacketDetail,
 };
 use chrono::DateTime;
 
@@ -118,46 +118,31 @@ impl PacketInfo {
                     ipv4 as &dyn PacketDetail,
                 )
             }
-            EthernetPacketInner::Ipv6(_ipv6) => {
+            EthernetPacketInner::Ipv6(ipv6) => {
                 (
                     packet.source.to_string(),
                     packet.destination.to_string(),
-                    "IPv6".to_string(),
-                    "IPv6 packet".to_string(),
-                    &DummyProtocolDetail { // Temporary until IPv6 implements PacketDetail
-                        slug: "IPV6",
-                        name: "Internet Protocol Version 6".to_string(),
-                        summary: "IPv6 packet".to_string(),
-                        details: vec!["IPv6 parsing not yet implemented".to_string()],
-                    } as &dyn PacketDetail,
+                    ipv6.slug().to_string(),
+                    ipv6.summary(),
+                    ipv6 as &dyn PacketDetail,
                 )
             }
-            EthernetPacketInner::Rarp(_rarp) => {
+            EthernetPacketInner::Rarp(rarp) => {
                 (
                     packet.source.to_string(),
                     packet.destination.to_string(),
-                    "RARP".to_string(),
-                    "RARP packet".to_string(),
-                    &DummyProtocolDetail {
-                        slug: "RARP",
-                        name: "Reverse Address Resolution Protocol".to_string(),
-                        summary: "RARP packet".to_string(),
-                        details: vec!["RARP parsing not yet implemented".to_string()],
-                    } as &dyn PacketDetail,
+                    rarp.slug().to_string(),
+                    rarp.summary(),
+                    rarp as &dyn PacketDetail,
                 )
             }
             EthernetPacketInner::Unknown(unknown) => {
                 (
                     packet.source.to_string(),
                     packet.destination.to_string(),
-                    format!("Unknown (0x{:04X})", unknown.ethertype),
-                    "Unknown protocol".to_string(),
-                    &DummyProtocolDetail {
-                        slug: "UNKNOWN",
-                        name: format!("Unknown Protocol (0x{:04X})", unknown.ethertype),
-                        summary: "Unknown protocol".to_string(),
-                        details: vec![format!("EtherType: 0x{:04X}", unknown.ethertype)],
-                    } as &dyn PacketDetail,
+                    unknown.slug().to_string(),
+                    unknown.summary(),
+                    unknown as &dyn PacketDetail,
                 )
             }
         };
@@ -204,37 +189,5 @@ impl PacketInfo {
         }
 
         (deepest.slug().to_string(), deepest.summary())
-    }
-}
-
-// Temporary helper for protocols that don't implement PacketDetail yet
-struct DummyProtocolDetail {
-    slug: &'static str,
-    name: String,
-    summary: String,
-    details: Vec<String>,
-}
-
-impl PacketDetail for DummyProtocolDetail {
-    fn summary(&self) -> String {
-        self.summary.clone()
-    }
-
-    fn details(&self) -> Vec<String> {
-        self.details.clone()
-    }
-
-    fn slug(&self) -> &'static str {
-        self.slug
-    }
-
-    fn name(&self) -> &'static str {
-        // This is a workaround - we leak the string to get a 'static reference
-        // since DummyProtocolDetail is only used temporarily during packet creation
-        Box::leak(self.name.clone().into_boxed_str())
-    }
-
-    fn length(&self) -> usize {
-        0
     }
 }

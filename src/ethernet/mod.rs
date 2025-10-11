@@ -3,14 +3,15 @@
 pub mod arp;
 pub mod ipv4;
 pub mod ipv6;
-pub mod packet_detail;
+mod packet_detail;
 pub mod rarp;
 
 use arp::{ArpPacket, ParseArpError};
 use ipv4::{Ipv4Packet, ParseIpv4Error};
-use ipv6::Ipv6Packet;
+use ipv6::{Ipv6Packet, ParseIpv6Error};
 use pcap::Packet;
-use rarp::RarpPacket;
+pub use packet_detail::PacketDetail;
+use rarp::{RarpPacket, ParseRarpError};
 
 use chrono::DateTime;
 use std::fmt;
@@ -49,6 +50,8 @@ pub struct UnknownEthernetPacket<'a> {
     pub ethertype: u16,
     /// The raw data field of the Ethernet packet.
     pub data: &'a [u8],
+    /// The raw Ethernet packet.
+    pub raw: &'a [u8],
 }
 
 /// Available inner packet types for Ethernet frames.
@@ -59,9 +62,9 @@ pub enum EthernetPacketInner<'a> {
     /// Address Resolution Protocol (0x0806)
     Arp(ArpPacket<'a>),
     /// Reverse Address Resolution Protocol (0x8035)
-    Rarp(RarpPacket),
+    Rarp(RarpPacket<'a>),
     /// Internet Protocol version 6 (0x86DD)
-    Ipv6(Ipv6Packet),
+    Ipv6(Ipv6Packet<'a>),
     // TODO: 0x8100 — VLAN-tagged frame (IEEE 802.1Q)?
     /// Unknown or unsupported `EtherType`
     Unknown(UnknownEthernetPacket<'a>),
@@ -79,6 +82,10 @@ pub enum ParseEthernetError {
     ParseArpError(ParseArpError),
     /// Error parsing inner IPv4 packet.
     ParseIpv4Error(ParseIpv4Error),
+    /// Error parsing inner IPv6 packet.
+    ParseIpv6Error(ParseIpv6Error),
+    /// Error parsing inner RARP packet.
+    ParseRarpError(ParseRarpError),
 }
 
 impl<'a> EthernetPacket<'a> {
@@ -109,11 +116,12 @@ impl<'a> EthernetPacket<'a> {
         let ethertype = match ethertype_raw {
             Ipv4Packet::ETHER_TYPE => EthernetPacketInner::Ipv4(Ipv4Packet::new(data)?), // Placeholder for actual IPv4 packet parsing
             ArpPacket::ETHER_TYPE => EthernetPacketInner::Arp(ArpPacket::new(data)?), // Placeholder for actual ARP packet parsing
-            RarpPacket::ETHER_TYPE => EthernetPacketInner::Rarp(RarpPacket::new(data)), // Placeholder for actual RARP packet parsing
-            Ipv6Packet::ETHER_TYPE => EthernetPacketInner::Ipv6(Ipv6Packet::new(data)), // Placeholder for actual IPv6 packet parsing
+            RarpPacket::ETHER_TYPE => EthernetPacketInner::Rarp(RarpPacket::new(data)?), // Placeholder for actual RARP packet parsing
+            Ipv6Packet::ETHER_TYPE => EthernetPacketInner::Ipv6(Ipv6Packet::new(data)?), // Placeholder for actual IPv6 packet parsing
             _ => EthernetPacketInner::Unknown(UnknownEthernetPacket {
                 ethertype: ethertype_raw,
                 data,
+                raw,
             }),
         };
 
@@ -184,6 +192,28 @@ impl fmt::Display for MacAddress {
             "{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
             bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5]
         )
+    }
+}
+
+impl PacketDetail for UnknownEthernetPacket<'_> {
+    fn summary(&self) -> String {
+        format!("Unknown Ethernet Packet (0x{:04x})", self.ethertype)
+    }
+
+    fn details(&self) -> Vec<String> {
+        vec!["IPv6 parsing not yet implemented".to_string()]
+    }
+
+    fn slug(&self) -> &'static str {
+        "UNKNOWN"
+    }
+
+    fn name(&self) -> &'static str {
+        "Unknown Protocol"
+    }
+
+    fn length(&self) -> usize {
+        self.raw.len()
     }
 }
 
