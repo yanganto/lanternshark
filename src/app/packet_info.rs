@@ -132,11 +132,8 @@ impl PacketInfo {
         let mut last_valid_addresses: Option<(String, String)> = None;
 
         while let Some(protocol) = current {
-            let source = protocol.source();
-            let destination = protocol.destination();
-
-            // Keep track of the last non-"N/A" addresses we find
-            if source != "N/A" && destination != "N/A" {
+            // Check if this protocol has addresses
+            if let (Some(source), Some(destination)) = (protocol.source(), protocol.destination()) {
                 last_valid_addresses = Some((source, destination));
             }
 

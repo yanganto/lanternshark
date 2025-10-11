@@ -21,14 +21,14 @@ pub trait PacketDetail {
 
     /// Get the source address as a string (if applicable).
     /// Returns None if the packet type doesn't have a source address.
-    fn source(&self) -> String {
-        "N/A".to_string()
+    fn source(&self) -> Option<String> {
+        None
     }
 
     /// Get the destination address as a string (if applicable).
     /// Returns None if the packet type doesn't have a destination address.
-    fn destination(&self) -> String {
-        "N/A".to_string()
+    fn destination(&self) -> Option<String> {
+        None
     }
 
     /// Get the packet length in bytes.

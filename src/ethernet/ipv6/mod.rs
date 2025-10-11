@@ -129,12 +129,12 @@ impl PacketDetail for Ipv6Packet<'_> {
         "Internet Protocol Version 6"
     }
 
-    fn source(&self) -> String {
-        self.source.to_string()
+    fn source(&self) -> Option<String> {
+        Some(self.source.to_string())
     }
 
-    fn destination(&self) -> String {
-        self.destination.to_string()
+    fn destination(&self) -> Option<String> {
+        Some(self.destination.to_string())
     }
 
     fn length(&self) -> usize {

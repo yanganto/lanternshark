@@ -214,12 +214,12 @@ impl PacketDetail for ArpPacket<'_> {
         "Address Resolution Protocol"
     }
 
-    fn source(&self) -> String {
-        self.sender_mac.to_string()
+    fn source(&self) -> Option<String> {
+        Some(self.sender_ip.to_string())
     }
 
-    fn destination(&self) -> String {
-        self.target_mac.to_string()
+    fn destination(&self) -> Option<String> {
+        Some(self.target_ip.to_string())
     }
 
     fn length(&self) -> usize {
