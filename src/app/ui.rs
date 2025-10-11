@@ -30,7 +30,7 @@ pub fn render(frame: &mut Frame, app: &mut App) {
 
 /// Render the packet list table.
 fn render_packet_list(frame: &mut Frame, app: &mut App, area: Rect) {
-    let header = Row::new(vec!["No.", "Time", "Source", "Destination", "Protocol", "Length", "Info"])
+    let header = Row::new(vec!["No.", "Time", "Source", "Destination", "Protocol", "Length", "Summary"])
         .style(Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD));
 
     let rows: Vec<Row> = app

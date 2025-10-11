@@ -3,7 +3,7 @@
 /// Trait for formatting packet details in a uniform way.
 pub trait PacketDetail {
     /// Get a brief summary of the packet (one-line description).
-    /// This is used in the packet list's "Info" column.
+    /// This is used in the packet list's "Summary" column.
     fn summary(&self) -> String;
 
     /// Get detailed information about the packet as a list of lines.

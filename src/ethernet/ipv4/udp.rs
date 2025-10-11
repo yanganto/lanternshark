@@ -6,7 +6,14 @@ use super::{Protocol, ParseIpv4Error, PacketDetail};
 /// A UDP packet.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UdpPacket<'a> {
-    // TODO: Complete the fields.
+    /// Source port.
+    pub src_port: u16,
+    /// Destination port.
+    pub dest_port: u16,
+    /// Length of the UDP packet including header and data.
+    pub length: u16,
+    /// Checksum of the UDP packet.
+    pub checksum: u16,
     /// The raw data field of the UDP packet.
     pub data: &'a [u8],
     /// The raw UDP packet.
@@ -15,7 +22,10 @@ pub struct UdpPacket<'a> {
 
 /// Possible errors when parsing a UDP packet.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ParseUdpError {}
+pub enum ParseUdpError {
+    /// The packet is too short to be a valid UDP packet.
+    PacketTooShort,
+}
 
 impl From<ParseUdpError> for ParseIpv4Error {
     fn from(err: ParseUdpError) -> Self {
@@ -27,7 +37,22 @@ impl<'a> UdpPacket<'a> {
     /// Create a new UDP packet from raw data.
     #[must_use]
     pub const fn new(raw: &'a [u8]) -> Result<Self, ParseUdpError> {
-        Ok(Self { data: raw, raw })
+        if raw.len() < 8 {
+            return Err(ParseUdpError::PacketTooShort);
+        }
+        let (header, data) = raw.split_at(8);
+        let source_port = u16::from_be_bytes([header[0], header[1]]);
+        let dest_port = u16::from_be_bytes([header[2], header[3]]);
+        let length = u16::from_be_bytes([header[4], header[5]]);
+        let checksum = u16::from_be_bytes([header[6], header[7]]);
+        Ok(Self {
+            src_port: source_port,
+            dest_port,
+            length,
+            checksum,
+            data,
+            raw,
+        })
     }
 }
 
@@ -37,18 +62,23 @@ impl Protocol for UdpPacket<'_> {
 
 impl fmt::Display for UdpPacket<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "UDP Packet, {} bytes", self.data.len())
+        let Self { src_port, dest_port, data, .. } = self;
+        write!(f, "UDP: port {src_port} to {dest_port}, data {} bytes", data.len())
     }
 }
 
 impl PacketDetail for UdpPacket<'_> {
     fn summary(&self) -> String {
-        format!("{} bytes", self.data.len())
+        let Self { src_port, dest_port, data, .. } = self;
+        format!("{} bytes of data from src port {src_port} to dest port {dest_port}", data.len())
     }
 
     fn details(&self) -> Vec<String> {
         vec![
-            "UDP parsing not yet fully implemented".to_string(),
+            format!("Source Port: {}", self.src_port),
+            format!("Destination Port: {}", self.dest_port),
+            format!("Length: {}", self.length),
+            format!("Checksum: 0x{:04x}", self.checksum),
             format!("Data Length: {} bytes", self.data.len()),
         ]
     }
