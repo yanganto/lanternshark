@@ -1,7 +1,7 @@
 //! ICMP packet parsing.
 // https://www.wikiwand.com/en/articles/Internet_Control_Message_Protocol
 
-use num_enum::FromPrimitive;
+use num_enum::{FromPrimitive, IntoPrimitive};
 use std::fmt;
 use super::{Protocol, ParseIpv4Error, PacketDetail};
 
@@ -24,7 +24,7 @@ pub struct IcmpPacket<'a> {
 
 /// Available ICMP types.
 #[repr(u8)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
 pub enum IcmpType {
     /// Echo Reply
     EchoReply = 0,
@@ -125,14 +125,7 @@ impl PacketDetail for IcmpPacket<'_> {
     }
 
     fn details(&self) -> Vec<String> {
-        let type_num = match self.icmp_type {
-            IcmpType::EchoReply => 0,
-            IcmpType::DestinationUnreachable => 3,
-            IcmpType::EchoRequest => 8,
-            IcmpType::TimeExceeded => 11,
-            IcmpType::ParameterProblem => 12,
-            IcmpType::Unknown(t) => t,
-        };
+        let type_num: u8 = self.icmp_type.into();
         vec![
             format!("Type: {} ({})", self.icmp_type, type_num),
             format!("Code: {}", self.code),
