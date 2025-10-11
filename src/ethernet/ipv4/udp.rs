@@ -70,7 +70,7 @@ impl fmt::Display for UdpPacket<'_> {
 impl PacketDetail for UdpPacket<'_> {
     fn summary(&self) -> String {
         let Self { src_port, dest_port, data, .. } = self;
-        format!("{} bytes of data from src port {src_port} to dest port {dest_port}", data.len())
+        format!("{} bytes of data from :{src_port} to :{dest_port}", data.len())
     }
 
     fn details(&self) -> Vec<String> {

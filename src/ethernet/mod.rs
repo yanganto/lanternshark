@@ -201,7 +201,10 @@ impl PacketDetail for UnknownEthernetPacket<'_> {
     }
 
     fn details(&self) -> Vec<String> {
-        vec!["IPv6 parsing not yet implemented".to_string()]
+        vec![
+            format!("EtherType: 0x{:04x}", self.ethertype),
+            format!("Data Length: {} bytes", self.data.len()),
+        ]
     }
 
     fn slug(&self) -> &'static str {
