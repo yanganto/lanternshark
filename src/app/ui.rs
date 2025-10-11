@@ -138,25 +138,6 @@ fn render_packet_details(frame: &mut Frame, app: &App, area: Rect) {
 fn format_packet_details(packet: &PacketInfo) -> Text<'static> {
     let mut lines = Vec::new();
 
-    // Ethernet frame
-    lines.push(Line::from(vec![
-        Span::styled("▼ Ethernet II", Style::default().fg(Color::Green)),
-        Span::raw(format!(", Src: {}, Dst: {}", packet.packet.ethernet.source, packet.packet.ethernet.destination)),
-    ]));
-    lines.push(Line::from(format!(
-        "  Destination: {}",
-        packet.packet.ethernet.destination
-    )));
-    lines.push(Line::from(format!(
-        "  Source: {}",
-        packet.packet.ethernet.source
-    )));
-    lines.push(Line::from(format!(
-        "  Type: {}",
-        packet.packet.ethernet.ethertype
-    )));
-    lines.push(Line::from(""));
-
     // Display all protocol layers collected via the linked-list traversal
     for layer in &packet.layers {
         lines.push(Line::from(vec![
