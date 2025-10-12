@@ -5,7 +5,7 @@
 [![GitHub Release](https://img.shields.io/github/v/release/PRO-2684/termshark?logo=githubactions)](https://github.com/PRO-2684/termshark/releases)
 [![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/PRO-2684/termshark/total?logo=github)](https://github.com/PRO-2684/termshark/releases)
 
-WireShark in the terminal. Primarily as my hand-in for the course "Software and System Security".
+WireShark in the terminal. Note that this is a toy project, with majority features missing.
 
 ## 📥 Installation
 
