@@ -46,8 +46,9 @@ pub fn run<T: Activated, P: AsRef<Path>>(mut capture: Capturing<T>, save_file: O
 
     // Main event loop
     loop {
-        // Try to capture a packet (non-blocking since we've called `setnonblock`)
-        if let Ok(packet) = capture.next_packet() {
+        // Process all available packets (non-blocking)
+        // Keep reading until no more packets are available
+        while let Ok(packet) = capture.next_packet() {
             // Parse the packet
             if let Ok(ethernet_packet) = EthernetPacket::try_from(&packet) {
                 // Create packet info and add to app
@@ -58,26 +59,6 @@ pub fn run<T: Activated, P: AsRef<Path>>(mut capture: Capturing<T>, save_file: O
                 save_file.as_mut().map(|sf| sf.write(&packet));
             }
         }
-        // For debugging
-        // match capture.next_packet() {
-        //     Ok(packet) => match EthernetPacket::try_from(&packet) {
-        //         Ok(ethernet_packet) => {
-        //             // Create packet info and add to app
-        //             let packet_info = PacketInfo::from_ethernet(&ethernet_packet, packet_number);
-        //             app.add_packet(packet_info);
-        //             packet_number += 1;
-        //         }
-        //         Err(e) => {
-        //             eprintln!("Failed to parse Ethernet packet: {e:?}");
-        //         }
-        //     }
-        //     Err(pcap::Error::NoMorePackets | pcap::Error::TimeoutExpired) => {
-        //         // No packets available right now, continue the loop
-        //     }
-        //     Err(e) => {
-        //         eprintln!("Error reading next packet: {e}");
-        //     }
-        // }
 
         // Render UI
         terminal.draw(|frame| ui::render(frame, &mut app))?;
