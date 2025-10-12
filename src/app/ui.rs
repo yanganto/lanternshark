@@ -92,7 +92,7 @@ fn render_filter_input(frame: &mut Frame, app: &App, area: Rect) {
 
         let title = format!(
             "Active Filter ({}/{}) - Press / to edit, Ctrl+X to clear",
-            app.packets.len(),
+            app.filtered_count(),
             app.all_packets.len()
         );
 
@@ -115,8 +115,7 @@ fn render_packet_list(frame: &mut Frame, app: &mut App, area: Rect) {
         .style(Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD));
 
     let rows: Vec<Row> = app
-        .packets
-        .iter()
+        .filtered_packets()
         .map(|packet| {
             let time = packet.timestamp.format("%H:%M:%S%.6f").to_string();
             Row::new(vec![
@@ -134,7 +133,7 @@ fn render_packet_list(frame: &mut Frame, app: &mut App, area: Rect) {
     // Build title - simpler now that filter info is in the filter bar
     let title = format!(
         "Captured Packets ({}) - ↑/↓, j/k, PgUp/PgDn, Home/End",
-        app.packets.len()
+        app.filtered_count()
     );
 
     let table = Table::new(
@@ -171,7 +170,7 @@ fn render_packet_list(frame: &mut Frame, app: &mut App, area: Rect) {
         .end_symbol(Some("↓"))
         .style(Style::default().fg(Color::Cyan));
 
-    let mut scrollbar_state = ScrollbarState::new(app.packets.len())
+    let mut scrollbar_state = ScrollbarState::new(app.filtered_count())
         .position(app.selected);
 
     frame.render_stateful_widget(

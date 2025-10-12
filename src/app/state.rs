@@ -9,8 +9,8 @@ use ratatui::widgets::TableState;
 pub struct App {
     /// All captured packets (unfiltered)
     pub all_packets: Vec<PacketInfo>,
-    /// Filtered packets for display
-    pub packets: Vec<PacketInfo>,
+    /// Indices of filtered packets in all_packets
+    pub filtered_indices: Vec<usize>,
     /// Currently selected packet index (in filtered list)
     pub selected: usize,
     /// Table state for the packet list
@@ -39,7 +39,7 @@ impl App {
         table_state.select(Some(0));
         Self {
             all_packets: Vec::new(),
-            packets: Vec::new(),
+            filtered_indices: Vec::new(),
             selected: 0,
             table_state,
             details_scroll: 0,
@@ -54,30 +54,31 @@ impl App {
 
     /// Add a new packet to the list.
     pub fn add_packet(&mut self, packet: PacketInfo) {
-        self.all_packets.push(packet.clone());
+        let packet_index = self.all_packets.len();
+        self.all_packets.push(packet);
 
         // Apply filter if active
         if let Some(ref filter) = self.filter {
-            if filter.matches(&packet) {
-                self.packets.push(packet);
+            if filter.matches(&self.all_packets[packet_index]) {
+                self.filtered_indices.push(packet_index);
             }
         } else {
-            self.packets.push(packet);
+            self.filtered_indices.push(packet_index);
         }
     }
 
     /// Apply a filter to all captured packets.
     pub fn apply_filter(&mut self) {
-        self.packets.clear();
+        self.filtered_indices.clear();
 
         if let Some(ref filter) = self.filter {
-            for packet in &self.all_packets {
+            for (index, packet) in self.all_packets.iter().enumerate() {
                 if filter.matches(packet) {
-                    self.packets.push(packet.clone());
+                    self.filtered_indices.push(index);
                 }
             }
         } else {
-            self.packets = self.all_packets.clone();
+            self.filtered_indices = (0..self.all_packets.len()).collect();
         }
 
         // Reset selection to first item
@@ -147,12 +148,26 @@ impl App {
     /// Get the currently selected packet.
     #[must_use]
     pub fn selected_packet(&self) -> Option<&PacketInfo> {
-        self.packets.get(self.selected)
+        self.filtered_indices
+            .get(self.selected)
+            .and_then(|&index| self.all_packets.get(index))
+    }
+
+    /// Get filtered packets for display.
+    pub fn filtered_packets(&self) -> impl Iterator<Item = &PacketInfo> {
+        self.filtered_indices
+            .iter()
+            .filter_map(|&index| self.all_packets.get(index))
+    }
+
+    /// Get the number of filtered packets.
+    pub fn filtered_count(&self) -> usize {
+        self.filtered_indices.len()
     }
 
     /// Set the selected packet index.
     pub fn set_selected(&mut self, index: usize) {
-        if index < self.packets.len() {
+        if index < self.filtered_indices.len() {
             self.selected = index;
             self.table_state.select(Some(self.selected));
             self.details_scroll = 0;

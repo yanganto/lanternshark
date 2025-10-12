@@ -43,7 +43,7 @@ fn handle_key_event(app: &mut App, key: KeyEvent) {
         KeyCode::PageUp => app.move_selection(-10),
         KeyCode::PageDown => app.move_selection(10),
         KeyCode::Home => app.set_selected(0),
-        KeyCode::End => app.set_selected(app.packets.len().saturating_sub(1)),
+        KeyCode::End => app.set_selected(app.filtered_count().saturating_sub(1)),
 
         // Scroll details view
         KeyCode::Char('w') => app.scroll_details_up(),
