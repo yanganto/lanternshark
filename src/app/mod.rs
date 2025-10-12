@@ -1,6 +1,7 @@
 //! App TUI logic.
 
 mod events;
+mod filter;
 mod packet_info;
 mod state;
 mod ui;

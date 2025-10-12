@@ -21,10 +21,21 @@ pub fn handle_events(app: &mut App) -> Result<(), std::io::Error> {
 
 /// Handle keyboard key events.
 fn handle_key_event(app: &mut App, key: KeyEvent) {
+    // If in filter mode, handle filter input
+    if app.filter_mode {
+        handle_filter_input(app, key);
+        return;
+    }
+
     match key.code {
         // Quit
         KeyCode::Char('q') | KeyCode::Char('Q') => app.quit(),
         KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => app.quit(),
+
+        // Filter mode
+        KeyCode::Char('/') => app.enter_filter_mode(),
+        KeyCode::Char('f') if key.modifiers.contains(KeyModifiers::CONTROL) => app.enter_filter_mode(),
+        KeyCode::Char('x') if key.modifiers.contains(KeyModifiers::CONTROL) => app.clear_filter(),
 
         // Navigate packet list
         KeyCode::Up | KeyCode::Char('k') => app.select_previous(),
@@ -42,6 +53,29 @@ fn handle_key_event(app: &mut App, key: KeyEvent) {
         KeyCode::Char('e') => app.scroll_hex_up(),
         KeyCode::Char('d') => app.scroll_hex_down(),
 
+        _ => {}
+    }
+}
+
+/// Handle keyboard input when in filter mode.
+fn handle_filter_input(app: &mut App, key: KeyEvent) {
+    match key.code {
+        // Exit filter mode without applying
+        KeyCode::Esc => app.exit_filter_mode(),
+        
+        // Apply filter
+        KeyCode::Enter => app.apply_filter_input(),
+        
+        // Delete last character
+        KeyCode::Backspace => {
+            app.filter_input.pop();
+        }
+        
+        // Add character to input
+        KeyCode::Char(c) => {
+            app.filter_input.push(c);
+        }
+        
         _ => {}
     }
 }

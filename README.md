@@ -53,6 +53,12 @@ Alternatively, you can [configure with `setcap`](https://github.com/rust-pcap/pc
 - **e/d**: Scroll hex dump panel up/down
 - **q** or **Ctrl+C**: Quit the application
 
+### 🔍 Filter Syntax
+
+```text
+key:value key2:value2
+```
+
 ## 💡 Samples
 
 Here's a list of sample packets for testing. All of them are [taken from WireShark wiki](https://wiki.wireshark.org/SampleCaptures), so feel free to visit it for more.

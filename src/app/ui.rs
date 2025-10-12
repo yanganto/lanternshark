@@ -12,20 +12,101 @@ use ratatui::{
 
 /// Render the main UI.
 pub fn render(frame: &mut Frame, app: &mut App) {
-    let chunks = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([
+    // Show filter bar if in filter mode OR if a filter is currently applied OR if there's a filter error
+    let show_filter_bar = app.filter_mode || app.filter.is_some() || app.filter_error.is_some();
+
+    let constraints = if show_filter_bar {
+        vec![
+            Constraint::Length(3),       // Filter input bar
+            Constraint::Percentage(37), // Packet list (reduced)
+            Constraint::Percentage(30), // Packet details
+            Constraint::Percentage(28), // Hex dump
+            Constraint::Length(2),       // Help bar
+        ]
+    } else {
+        vec![
             Constraint::Percentage(40), // Packet list
             Constraint::Percentage(30), // Packet details
             Constraint::Percentage(28), // Hex dump
             Constraint::Length(2),       // Help bar
-        ])
+        ]
+    };
+
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(constraints)
         .split(frame.area());
 
-    render_packet_list(frame, app, chunks[0]);
-    render_packet_details(frame, app, chunks[1]);
-    render_hex_dump(frame, app, chunks[2]);
-    render_help(frame, chunks[3]);
+    if show_filter_bar {
+        render_filter_input(frame, app, chunks[0]);
+        render_packet_list(frame, app, chunks[1]);
+        render_packet_details(frame, app, chunks[2]);
+        render_hex_dump(frame, app, chunks[3]);
+        render_help(frame, chunks[4]);
+    } else {
+        render_packet_list(frame, app, chunks[0]);
+        render_packet_details(frame, app, chunks[1]);
+        render_hex_dump(frame, app, chunks[2]);
+        render_help(frame, chunks[3]);
+    }
+}
+
+/// Render the filter input bar.
+fn render_filter_input(frame: &mut Frame, app: &App, area: Rect) {
+    // Determine text and style based on mode
+    if app.filter_mode {
+        // In filter mode: show current input being edited
+        let style = if app.filter_error.is_some() {
+            Style::default().fg(Color::Red)
+        } else {
+            Style::default().fg(Color::Green)
+        };
+
+        let title = if let Some(ref error) = app.filter_error {
+            format!("Filter (Error: {}) - Press Enter to apply, Esc to cancel", error)
+        } else {
+            "Filter - Press Enter to apply, Esc to cancel".to_string()
+        };
+
+        let input = Paragraph::new(app.filter_input.as_str())
+            .style(style)
+            .block(
+                Block::default()
+                    .title(title)
+                    .borders(Borders::ALL)
+                    .border_style(Style::default().fg(Color::Yellow)),
+            );
+
+        frame.render_widget(input, area);
+
+        // Show cursor when in filter mode
+        let cursor_x = area.x + app.filter_input.len() as u16 + 1;
+        let cursor_y = area.y + 1;
+        frame.set_cursor_position((cursor_x, cursor_y));
+    } else {
+        // Filter applied but not editing: show current filter
+        let filter_text = app.filter
+            .as_ref()
+            .map(|f| f.to_string())
+            .unwrap_or_default();
+
+        let title = format!(
+            "Active Filter ({}/{}) - Press / to edit, Ctrl+X to clear",
+            app.packets.len(),
+            app.all_packets.len()
+        );
+
+        let input = Paragraph::new(filter_text.as_str())
+            .style(Style::default().fg(Color::Cyan))
+            .block(
+                Block::default()
+                    .title(title)
+                    .borders(Borders::ALL)
+                    .border_style(Style::default().fg(Color::Cyan)),
+            );
+
+        frame.render_widget(input, area);
+    }
 }
 
 /// Render the packet list table.
@@ -50,6 +131,12 @@ fn render_packet_list(frame: &mut Frame, app: &mut App, area: Rect) {
         })
         .collect();
 
+    // Build title - simpler now that filter info is in the filter bar
+    let title = format!(
+        "Captured Packets ({}) - ↑/↓, j/k, PgUp/PgDn, Home/End",
+        app.packets.len()
+    );
+
     let table = Table::new(
         rows,
         [
@@ -65,7 +152,7 @@ fn render_packet_list(frame: &mut Frame, app: &mut App, area: Rect) {
     .header(header)
     .block(
         Block::default()
-            .title("Captured Packets (↑/↓, Wheel, j/k, PgUp/PgDn, Home/End)")
+            .title(title)
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::Cyan)),
     )
@@ -258,11 +345,12 @@ fn render_help(frame: &mut Frame, area: Rect) {
     let help_text = Line::from(vec![
         Span::styled(format!("{APP_NAME}@{VERSION}"), Style::default().fg(Color::Cyan)),
         Span::styled(" | ", Style::default().fg(Color::DarkGray)),
-        Span::styled("Press ", Style::default().fg(Color::DarkGray)),
+        Span::styled("/", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+        Span::styled(" filter ", Style::default().fg(Color::DarkGray)),
+        Span::styled("Ctrl+X", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+        Span::styled(" clear ", Style::default().fg(Color::DarkGray)),
         Span::styled("q", Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),
-        Span::styled(" or ", Style::default().fg(Color::DarkGray)),
-        Span::styled("Ctrl+C", Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),
-        Span::styled(" to quit", Style::default().fg(Color::DarkGray)),
+        Span::styled(" quit", Style::default().fg(Color::DarkGray)),
     ]);
 
     let paragraph = Paragraph::new(help_text)

@@ -1,14 +1,17 @@
 //! Application state management.
 
+use super::filter::PacketFilter;
 use super::packet_info::PacketInfo;
 use ratatui::widgets::TableState;
 
 /// Main application state.
 #[derive(Debug)]
 pub struct App {
-    /// List of captured packets
+    /// All captured packets (unfiltered)
+    pub all_packets: Vec<PacketInfo>,
+    /// Filtered packets for display
     pub packets: Vec<PacketInfo>,
-    /// Currently selected packet index
+    /// Currently selected packet index (in filtered list)
     pub selected: usize,
     /// Table state for the packet list
     pub table_state: TableState,
@@ -18,6 +21,14 @@ pub struct App {
     pub hex_scroll: u16,
     /// Whether the application should quit
     pub should_quit: bool,
+    /// Current packet filter
+    pub filter: Option<PacketFilter>,
+    /// Filter input string (when editing)
+    pub filter_input: String,
+    /// Whether filter input mode is active
+    pub filter_mode: bool,
+    /// Error message from last filter parse attempt
+    pub filter_error: Option<String>,
 }
 
 impl App {
@@ -27,18 +38,110 @@ impl App {
         let mut table_state = TableState::default();
         table_state.select(Some(0));
         Self {
+            all_packets: Vec::new(),
             packets: Vec::new(),
             selected: 0,
             table_state,
             details_scroll: 0,
             hex_scroll: 0,
             should_quit: false,
+            filter: None,
+            filter_input: String::new(),
+            filter_mode: false,
+            filter_error: None,
         }
     }
 
     /// Add a new packet to the list.
     pub fn add_packet(&mut self, packet: PacketInfo) {
-        self.packets.push(packet);
+        self.all_packets.push(packet.clone());
+
+        // Apply filter if active
+        if let Some(ref filter) = self.filter {
+            if filter.matches(&packet) {
+                self.packets.push(packet);
+            }
+        } else {
+            self.packets.push(packet);
+        }
+    }
+
+    /// Apply a filter to all captured packets.
+    pub fn apply_filter(&mut self) {
+        self.packets.clear();
+
+        if let Some(ref filter) = self.filter {
+            for packet in &self.all_packets {
+                if filter.matches(packet) {
+                    self.packets.push(packet.clone());
+                }
+            }
+        } else {
+            self.packets = self.all_packets.clone();
+        }
+
+        // Reset selection to first item
+        self.selected = 0;
+        self.table_state.select(Some(0));
+        self.details_scroll = 0;
+        self.hex_scroll = 0;
+    }
+
+    /// Set filter from input string.
+    pub fn set_filter(&mut self, input: &str) {
+        if input.trim().is_empty() {
+            self.filter = None;
+            self.filter_error = None;
+        } else {
+            match PacketFilter::parse(input) {
+                Ok(filter) => {
+                    self.filter = Some(filter);
+                    self.filter_error = None;
+                }
+                Err(e) => {
+                    self.filter_error = Some(e);
+                    return; // Don't apply invalid filter
+                }
+            }
+        }
+
+        self.apply_filter();
+    }
+
+    /// Enter filter editing mode.
+    pub fn enter_filter_mode(&mut self) {
+        self.filter_mode = true;
+        // Initialize input with current filter if any
+        self.filter_input = self.filter
+            .as_ref()
+            .map(|f| f.to_string())
+            .unwrap_or_default();
+    }
+
+    /// Exit filter editing mode without applying.
+    pub fn exit_filter_mode(&mut self) {
+        self.filter_mode = false;
+        self.filter_input.clear();
+        self.filter_error = None;
+    }
+
+    /// Apply current filter input and exit filter mode.
+    pub fn apply_filter_input(&mut self) {
+        let input = self.filter_input.clone();
+        self.set_filter(&input);
+
+        // Only exit filter mode if there's no error
+        if self.filter_error.is_none() {
+            self.filter_mode = false;
+            self.filter_input.clear();
+        }
+    }
+
+    /// Clear current filter.
+    pub fn clear_filter(&mut self) {
+        self.filter = None;
+        self.filter_error = None;
+        self.apply_filter();
     }
 
     /// Get the currently selected packet.
