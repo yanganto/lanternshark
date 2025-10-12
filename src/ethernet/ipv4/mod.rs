@@ -2,12 +2,14 @@
 // https://www.wikiwand.com/en/articles/IPv4
 
 pub mod icmp;
+pub mod igmp;
 pub mod tcp;
 pub mod udp;
 
 use std::{fmt, net::Ipv4Addr};
 use super::{EtherType, PacketDetail};
 use icmp::{IcmpPacket, ParseIcmpError};
+use igmp::{IgmpPacket, ParseIgmpError};
 use tcp::{TcpPacket, ParseTcpError};
 use udp::{UdpPacket, ParseUdpError};
 
@@ -40,7 +42,7 @@ pub struct Ipv4Packet<'a> {
     pub destination: Ipv4Addr,
     /// Options.
     pub options: &'a [u8],
-    /// The raw data field of the packet.
+    /// The raw data field or leftover data of the packet.
     pub data: &'a [u8],
     /// The raw IPv4 packet.
     pub raw: &'a [u8],
@@ -51,7 +53,7 @@ pub struct Ipv4Packet<'a> {
 pub struct UnknownIpv4Packet<'a> {
     /// The raw protocol of the IPv4 packet.
     pub protocol: u8,
-    /// The raw data field of the IPv4 packet.
+    /// The raw data field or leftover data of the IPv4 packet.
     pub data: &'a [u8],
 }
 
@@ -86,6 +88,8 @@ pub trait Protocol {
 pub enum Ipv4PacketInner<'a> {
     /// Internet Control Message Protocol (0x01)
     Icmp(IcmpPacket<'a>),
+    /// Internet Group Management Protocol (0x02)
+    Igmp(IgmpPacket<'a>),
     /// Transmission Control Protocol (0x06)
     Tcp(TcpPacket<'a>),
     /// User Datagram Protocol (0x11)
@@ -100,6 +104,7 @@ impl Ipv4PacketInner<'_> {
     pub const fn protocol_number(&self) -> u8 {
         match self {
             Self::Icmp(_) => IcmpPacket::PROTOCOL,
+            Self::Igmp(_) => IgmpPacket::PROTOCOL,
             Self::Tcp(_) => TcpPacket::PROTOCOL,
             Self::Udp(_) => UdpPacket::PROTOCOL,
             Self::Unknown(u) => u.protocol,
@@ -110,6 +115,7 @@ impl Ipv4PacketInner<'_> {
     pub const fn slug(&self) -> &'static str {
         match self {
             Self::Icmp(_) => "ICMP",
+            Self::Igmp(_) => "IGMP",
             Self::Tcp(_) => "TCP",
             Self::Udp(_) => "UDP",
             Self::Unknown(_) => "Unknown",
@@ -128,6 +134,8 @@ pub enum ParseIpv4Error {
     InvalidVersion,
     /// Error parsing inner ICMP packet.
     ParseIcmpError(ParseIcmpError),
+    /// Error parsing inner IGMP packet.
+    ParseIgmpError(ParseIgmpError),
     /// Error parsing inner TCP packet.
     ParseTcpError(ParseTcpError),
     /// Error parsing inner UDP packet.
@@ -175,6 +183,7 @@ impl<'a> Ipv4Packet<'a> {
 
         let inner = match protocol {
             IcmpPacket::PROTOCOL => Ipv4PacketInner::Icmp(IcmpPacket::new(data)?),
+            IgmpPacket::PROTOCOL => Ipv4PacketInner::Igmp(IgmpPacket::new(data)?),
             TcpPacket::PROTOCOL => Ipv4PacketInner::Tcp(TcpPacket::new(data)?),
             UdpPacket::PROTOCOL => Ipv4PacketInner::Udp(UdpPacket::new(data)?),
             _ => Ipv4PacketInner::Unknown(UnknownIpv4Packet { protocol, data }),
@@ -227,6 +236,7 @@ impl fmt::Display for Ipv4PacketInner<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Icmp(icmp) => icmp.fmt(f),
+            Self::Igmp(igmp) => igmp.fmt(f),
             Self::Tcp(tcp) => tcp.fmt(f),
             Self::Udp(udp) => udp.fmt(f),
             Self::Unknown(unknown) => unknown.fmt(f),
@@ -311,6 +321,7 @@ impl PacketDetail for Ipv4Packet<'_> {
     fn inner(&self) -> Option<&dyn PacketDetail> {
         match &self.inner {
             Ipv4PacketInner::Icmp(icmp) => Some(icmp),
+            Ipv4PacketInner::Igmp(igmp) => Some(igmp),
             Ipv4PacketInner::Tcp(tcp) => Some(tcp),
             Ipv4PacketInner::Udp(udp) => Some(udp),
             Ipv4PacketInner::Unknown(_) => None,

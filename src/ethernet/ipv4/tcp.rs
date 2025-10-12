@@ -28,7 +28,7 @@ pub struct TcpPacket<'a> {
     pub urgent_pointer: u16,
     /// Options. Length varies from 0 to 40 bytes.
     pub options: &'a [u8],
-    /// The raw data field of the TCP packet.
+    /// The raw data field or leftover data of the TCP packet.
     pub data: &'a [u8],
     /// The raw TCP packet.
     pub raw: &'a [u8],

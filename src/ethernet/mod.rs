@@ -25,7 +25,7 @@ pub struct EthernetPacket<'a> {
     pub source: MacAddress,
     /// The inner packet. Type is determined by the `EtherType` field (16 bits).
     pub inner: EthernetPacketInner<'a>,
-    /// The raw data field of the packet.
+    /// The raw data field or leftover data of the packet.
     pub data: &'a [u8],
     /// The raw Ethernet packet.
     pub raw: &'a [u8],
@@ -46,7 +46,7 @@ pub trait EtherType {
 pub struct UnknownEthernetPacket<'a> {
     /// The raw type of the Ethernet packet.
     pub ethertype: u16,
-    /// The raw data field of the Ethernet packet.
+    /// The raw data field or leftover data of the Ethernet packet.
     pub data: &'a [u8],
     /// The raw Ethernet packet.
     pub raw: &'a [u8],

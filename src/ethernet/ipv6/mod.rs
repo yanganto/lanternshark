@@ -23,7 +23,7 @@ pub struct Ipv6Packet<'a> {
     pub source: Ipv6Addr,
     /// Destination IP address. 128 bits.
     pub destination: Ipv6Addr,
-    /// The raw data field of the IPv6 packet.
+    /// The raw data field or leftover data of the IPv6 packet.
     pub data: &'a [u8],
     /// The raw IPv6 packet.
     pub raw: &'a [u8],

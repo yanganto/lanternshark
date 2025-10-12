@@ -7,6 +7,7 @@
 - [x] `EthernetPacket`
     - [x] `Ipv4Packet`
         - [x] `ICMPPacket`
+        - [x] `IGMPPacket`
         - [x] `TCPPacket`
         - [x] `UDPPacket`
         - [x] `UnknownIpv4Packet`
@@ -14,7 +15,7 @@
     - [x] `Ipv6Packet`
     - [x] `UnknownEthernetPacket`
 
-IGMP, HTTP/HTTPS, FTP, DNS?
+HTTP/HTTPS, FTP, DNS?
 
 ## 🖼️ TUI
 

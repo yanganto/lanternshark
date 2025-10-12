@@ -14,7 +14,7 @@ pub struct UdpPacket<'a> {
     pub length: u16,
     /// Checksum of the UDP packet.
     pub checksum: u16,
-    /// The raw data field of the UDP packet.
+    /// The raw data field or leftover data of the UDP packet.
     pub data: &'a [u8],
     /// The raw UDP packet.
     pub raw: &'a [u8],

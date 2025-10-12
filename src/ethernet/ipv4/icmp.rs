@@ -5,7 +5,7 @@ use num_enum::{FromPrimitive, IntoPrimitive};
 use std::fmt;
 use super::{Protocol, ParseIpv4Error, PacketDetail};
 
-/// A ICMP packet.
+/// An ICMP packet.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IcmpPacket<'a> {
     /// The type of the ICMP packet. 8 bits.
@@ -16,7 +16,7 @@ pub struct IcmpPacket<'a> {
     pub checksum: u16,
     /// The rest of the header (varies by type and code).
     pub rest_of_header: u32,
-    /// The raw data field of the ICMP packet.
+    /// The raw data field or leftover data of the ICMP packet.
     pub data: &'a [u8],
     /// The raw ICMP packet.
     pub raw: &'a [u8],
@@ -127,7 +127,7 @@ impl PacketDetail for IcmpPacket<'_> {
     fn details(&self) -> Vec<String> {
         let type_num: u8 = self.icmp_type.into();
         vec![
-            format!("Type: {} ({})", self.icmp_type, type_num),
+            format!("Type: {} ({type_num})", self.icmp_type),
             format!("Code: {}", self.code),
             format!("Checksum: 0x{:04x}", self.checksum),
             format!("Rest of Header: 0x{:08x}", self.rest_of_header),
