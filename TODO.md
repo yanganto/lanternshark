@@ -2,17 +2,13 @@
 
 ## Planned
 
-- Filter
-- Implement `Display` for `PacketDetail`, replacing original implementatitons
 - Scroll each panel with wheel / Tabbing through sections and use the same hotkeys
-- Upper-case hex
-- Ellipsis when there's no space for text
-- Fix Src/Dst column length (would truncate for IPv6 (and MAC?) addrs)
 - `PgUp`/`PgDn` scrolls one page instead of 10 entries
-- Adapting hex dump width to window width
+- Upper-case hex
 
 ## Not Planned (for now?)
 
+- Stacking details panel and hex dump panel horizontally when wide enough
 - Implement all registered protocols
 - Tabbing through sections and use the same hotkeys
 - Collapsible details (remembers state for individual protocol across packets)
