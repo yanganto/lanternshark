@@ -89,7 +89,7 @@ impl<'a> EthernetPacket<'a> {
     ///
     /// See [`ParseEthernetError`].
     pub fn new(header: &pcap::PacketHeader, raw: &'a [u8]) -> Result<Self, ParseEthernetError> {
-        let seconds = header.ts.tv_sec; // `as i64` is required, since on Windows `tv_sec` is `c_long` which is `i32`
+        let seconds = header.ts.tv_sec as i64; // `as i64` is required, since on Windows `tv_sec` is `c_long` which is `i32`
         let nanos = header.ts.tv_usec * 1000;
         let nanos = nanos
             .try_into()
