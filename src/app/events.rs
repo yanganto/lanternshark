@@ -39,8 +39,8 @@ fn handle_key_event(app: &mut App, key: KeyEvent) {
         // Navigate packet list
         KeyCode::Up | KeyCode::Char('k') => app.select_previous(),
         KeyCode::Down | KeyCode::Char('j') => app.select_next(),
-        KeyCode::PageUp => app.move_selection(-10),
-        KeyCode::PageDown => app.move_selection(10),
+        KeyCode::PageUp => app.page_up(),
+        KeyCode::PageDown => app.page_down(),
         KeyCode::Home => app.set_selected(0),
         KeyCode::End => app.set_selected(app.filtered_count().saturating_sub(1)),
 

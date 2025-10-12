@@ -29,6 +29,8 @@ pub struct App {
     pub filter_mode: bool,
     /// Error message from last filter parse attempt
     pub filter_error: Option<String>,
+    /// Visible page height for packet list (updated by UI)
+    pub packet_list_height: u16,
 }
 
 impl App {
@@ -49,6 +51,7 @@ impl App {
             filter_input: String::new(),
             filter_mode: false,
             filter_error: None,
+            packet_list_height: 10, // Default page size
         }
     }
 
@@ -167,12 +170,11 @@ impl App {
 
     /// Set the selected packet index.
     pub fn set_selected(&mut self, index: usize) {
-        if index < self.filtered_indices.len() {
-            self.selected = index;
-            self.table_state.select(Some(self.selected));
-            self.details_scroll = 0;
-            self.hex_scroll = 0;
-        }
+        let index = self.filtered_count().saturating_sub(1).min(index);
+        self.selected = index;
+        self.table_state.select(Some(self.selected));
+        self.details_scroll = 0;
+        self.hex_scroll = 0;
     }
 
     /// Move selection by given offset.
@@ -193,6 +195,18 @@ impl App {
     /// Move selection down.
     pub fn select_next(&mut self) {
         self.move_selection(1);
+    }
+
+    /// Move selection up by one page.
+    pub fn page_up(&mut self) {
+        let page_size = self.packet_list_height.max(1) as isize;
+        self.move_selection(-page_size);
+    }
+
+    /// Move selection down by one page.
+    pub fn page_down(&mut self) {
+        let page_size = self.packet_list_height.max(1) as isize;
+        self.move_selection(page_size);
     }
 
     /// Scroll details view up.

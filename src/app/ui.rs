@@ -166,6 +166,10 @@ fn render_packet_list(frame: &mut Frame, app: &mut App, area: Rect) {
     )
     .highlight_symbol(">> ");
 
+    // Update the visible page height for page up/down navigation
+    // Height = area height - 2 (borders) - 1 (header)
+    app.packet_list_height = area.height.saturating_sub(3);
+
     frame.render_stateful_widget(table, area, &mut app.table_state);
 
     // Render scrollbar for packet list

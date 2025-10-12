@@ -2,9 +2,9 @@
 
 ## Planned
 
-- Scroll each panel with wheel / Tabbing through sections and use the same hotkeys
-- `PgUp`/`PgDn` scrolls one page instead of 10 entries
 - Upper-case hex
+- Layout details panel and hex dump panel horizontally if wide enough
+- Scroll each panel with wheel / Tabbing through sections and use the same hotkeys
 
 ## Not Planned (for now?)
 
