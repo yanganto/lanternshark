@@ -4,10 +4,19 @@
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/PRO-2684/termshark/release.yml?logo=githubactions)](https://github.com/PRO-2684/termshark/blob/main/.github/workflows/release.yml)
 [![GitHub Release](https://img.shields.io/github/v/release/PRO-2684/termshark?logo=githubactions)](https://github.com/PRO-2684/termshark/releases)
 [![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/PRO-2684/termshark/total?logo=github)](https://github.com/PRO-2684/termshark/releases)
+[![Crates.io Version](https://img.shields.io/crates/v/termshark?logo=rust)](https://crates.io/crates/termshark)
+[![Crates.io Total Downloads](https://img.shields.io/crates/d/termshark?logo=rust)](https://crates.io/crates/termshark)
+[![docs.rs](https://img.shields.io/docsrs/termshark?logo=rust)](https://docs.rs/termshark)
 
 WireShark in the terminal. Note that this is a toy project, with majority features missing.
 
 ## 📥 Installation
+
+### Using [`binstall`](https://github.com/cargo-bins/cargo-binstall)
+
+```shell
+cargo binstall termshark
+```
 
 ### Downloading from Releases
 
