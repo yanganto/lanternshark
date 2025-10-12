@@ -62,14 +62,7 @@ pub struct PacketInfo {
     pub info: String,
     /// All protocol layers (collected by traversing inner() links)
     pub layers: Vec<ProtocolLayer>,
-    /// The full Ethernet packet for detailed view
-    pub packet: PacketInfoDetail,
-}
-
-/// Detailed packet information for the details pane.
-#[derive(Debug, Clone)]
-pub struct PacketInfoDetail {
-    /// Raw packet data
+    /// Raw packet bytes for hex dump display
     pub raw: Vec<u8>,
 }
 
@@ -104,9 +97,7 @@ impl PacketInfo {
             length,
             info,
             layers,
-            packet: PacketInfoDetail {
-                raw: packet.raw.to_vec(),
-            },
+            raw: packet.raw.to_vec(),
         }
     }
 

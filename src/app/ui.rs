@@ -159,7 +159,7 @@ fn format_packet_details(packet: &PacketInfo) -> Text<'static> {
 /// Render the hex dump panel.
 fn render_hex_dump(frame: &mut Frame, app: &App, area: Rect) {
     let text = if let Some(packet) = app.selected_packet() {
-        format_hex_dump(&packet.packet.raw)
+        format_hex_dump(&packet.raw)
     } else {
         Text::from("No packet selected")
     };
