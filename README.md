@@ -44,10 +44,13 @@ Alternatively, you can [configure with `setcap`](https://github.com/rust-pcap/pc
 - **e/d**: Scroll hex dump panel up/down
 - **q** or **Ctrl+C**: Quit the application
 
-## 📃 References
+## 💡 Samples
 
-- [ARP](https://www.wikiwand.com/en/articles/Address_Resolution_Protocol), [ARP parameters](https://www.iana.org/assignments/arp-parameters/arp-parameters.xhtml)
-- [IPv4](https://www.wikiwand.com/en/articles/IPv4)
+Here's a list of sample packets for testing. All of them are [taken from WireShark wiki](https://wiki.wireshark.org/SampleCaptures), so feel free to visit it for more.
+
+- [`HTTP.pcap`](./samples/HTTP.pcap): From [`http.cap`](https://wiki.wireshark.org/uploads/27707187aeb30df68e70c8fb9d614981/http.cap)
+- [`ICMP.pcap`](./samples/ICMP.pcap): From [`ipv4frags.pcap`](https://wiki.wireshark.org/uploads/__moin_import__/attachments/SampleCaptures/ipv4frags.pcap)
+- [`IGMP.pcap`](./samples/IGMP.pcap): From [`IGMP-dataset.pcap`](https://wiki.wireshark.org/uploads/__moin_import__/attachments/SampleCaptures/IGMP-dataset.pcap)
 
 ## 🎉 Credits
 
