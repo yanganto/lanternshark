@@ -119,15 +119,15 @@ impl Protocol for TcpPacket<'_> {
 
 impl fmt::Display for TcpPacket<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let Self { sequence_number, src_port, dest_port, data, .. } = self;
-        write!(f, "TCP: #{sequence_number}, port {src_port} to {dest_port}, data {} bytes", data.len())
+        let Self { flags, src_port, dest_port, data, .. } = self;
+        write!(f, "TCP: [{flags}] {} bytes from :{src_port} to :{dest_port}", data.len())
     }
 }
 
 impl PacketDetail for TcpPacket<'_> {
     fn summary(&self) -> String {
-        let Self { sequence_number, src_port, dest_port, data, .. } = self;
-        format!("#{sequence_number}, {} bytes of data from :{src_port} to :{dest_port}", data.len())
+        let Self { flags, src_port, dest_port, data, .. } = self;
+        format!("[{flags}] {} bytes from :{src_port} to :{dest_port}", data.len())
     }
 
     fn details(&self) -> Vec<String> {
@@ -184,18 +184,16 @@ impl From<u8> for TcpPacketFlags {
 
 impl fmt::Display for TcpPacketFlags {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "0b{:08b}",
-            (self.cwr as u8) << 7
-                | (self.ece as u8) << 6
-                | (self.urg as u8) << 5
-                | (self.ack as u8) << 4
-                | (self.psh as u8) << 3
-                | (self.rst as u8) << 2
-                | (self.syn as u8) << 1
-                | (self.fin as u8),
-        )
+        let mut flags = Vec::new();
+        if self.cwr { flags.push("CWR"); }
+        if self.ece { flags.push("ECE"); }
+        if self.urg { flags.push("URG"); }
+        if self.ack { flags.push("ACK"); }
+        if self.psh { flags.push("PSH"); }
+        if self.rst { flags.push("RST"); }
+        if self.syn { flags.push("SYN"); }
+        if self.fin { flags.push("FIN"); }
+        write!(f, "{}", flags.join(", "))
     }
 }
 

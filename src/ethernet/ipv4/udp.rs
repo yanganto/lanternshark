@@ -63,14 +63,14 @@ impl Protocol for UdpPacket<'_> {
 impl fmt::Display for UdpPacket<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let Self { src_port, dest_port, data, .. } = self;
-        write!(f, "UDP: port {src_port} to {dest_port}, data {} bytes", data.len())
+        write!(f, "UDP: {} bytes from :{src_port} to :{dest_port}", data.len())
     }
 }
 
 impl PacketDetail for UdpPacket<'_> {
     fn summary(&self) -> String {
         let Self { src_port, dest_port, data, .. } = self;
-        format!("{} bytes of data from :{src_port} to :{dest_port}", data.len())
+        format!("{} bytes from :{src_port} to :{dest_port}", data.len())
     }
 
     fn details(&self) -> Vec<String> {
