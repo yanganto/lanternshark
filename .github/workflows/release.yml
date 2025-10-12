@@ -9,7 +9,6 @@ on:
 env:
   BIN_NAME: termshark
 
-
 jobs:
   create-release:
     name: create-release
@@ -107,3 +106,18 @@ jobs:
         asset_path: ${{ env.ASSET }}
         asset_name: ${{ env.ASSET }}
         asset_content_type: application/octet-stream
+  publish-release:
+    # Publish the release to crates.io
+    name: publish-release
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: stable
+    - name: Publish to crates.io
+      run: cargo publish --token ${{ secrets.CARGO_TOKEN }}
