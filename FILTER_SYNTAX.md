@@ -101,10 +101,8 @@ Multiple filters are combined with AND logic. All conditions must be satisfied.
 
 ## Keyboard Shortcuts
 
-- **/** or **Ctrl+F** - Enter filter mode
-- **Enter** - Apply the filter
-- **Esc** - Cancel filter editing
-- **Ctrl+X** - Clear current filter
+- **Enter** - Enter filter mode (when not in filter mode) OR apply the filter (when in filter mode)
+- **Esc** - Cancel filter editing (when in filter mode) OR clear active filter (when not in filter mode)
 - **Backspace** - Delete last character while editing
 
 ## Filter Display
@@ -112,8 +110,8 @@ Multiple filters are combined with AND logic. All conditions must be satisfied.
 When a filter is active:
 - The filter bar is always visible showing the current filter
 - The filter bar title shows `(X/Y)` where X is filtered count and Y is total
-- Press **/** to edit the filter (cursor appears in the filter bar)
-- Press **Ctrl+X** to clear the filter
+- Press **Enter** to edit the filter (cursor appears in the filter bar)
+- Press **Esc** to clear the filter
 - Errors in filter syntax are shown in red in the filter input bar
 
 ## Tips

@@ -90,11 +90,7 @@ fn render_filter_input(frame: &mut Frame, app: &App, area: Rect) {
             .map(|f| f.to_string())
             .unwrap_or_default();
 
-        let title = format!(
-            "Active Filter ({}/{}) - Press / to edit, Ctrl+X to clear",
-            app.filtered_count(),
-            app.all_packets.len()
-        );
+        let title = "Filter Active - Press Enter to edit, Esc to clear";
 
         let input = Paragraph::new(filter_text.as_str())
             .style(Style::default().fg(Color::Cyan))
@@ -130,11 +126,19 @@ fn render_packet_list(frame: &mut Frame, app: &mut App, area: Rect) {
         })
         .collect();
 
-    // Build title - simpler now that filter info is in the filter bar
-    let title = format!(
-        "Captured Packets ({}) - ↑/↓, j/k, PgUp/PgDn, Home/End",
-        app.filtered_count()
-    );
+    // Build title - show filtered count when filter is active
+    let title = if app.filter.is_some() {
+        format!(
+            "Captured Packets ({}/{}) - ↑/↓, j/k, PgUp/PgDn, Home/End",
+            app.filtered_count(),
+            app.all_packets.len()
+        )
+    } else {
+        format!(
+            "Captured Packets ({}) - ↑/↓, j/k, PgUp/PgDn, Home/End",
+            app.filtered_count()
+        )
+    };
 
     let table = Table::new(
         rows,
@@ -344,9 +348,9 @@ fn render_help(frame: &mut Frame, area: Rect) {
     let help_text = Line::from(vec![
         Span::styled(format!("{APP_NAME}@{VERSION}"), Style::default().fg(Color::Cyan)),
         Span::styled(" | ", Style::default().fg(Color::DarkGray)),
-        Span::styled("/", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+        Span::styled("Enter", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
         Span::styled(" filter ", Style::default().fg(Color::DarkGray)),
-        Span::styled("Ctrl+X", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+        Span::styled("Esc", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
         Span::styled(" clear ", Style::default().fg(Color::DarkGray)),
         Span::styled("q", Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),
         Span::styled(" quit", Style::default().fg(Color::DarkGray)),

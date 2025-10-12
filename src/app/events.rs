@@ -33,9 +33,8 @@ fn handle_key_event(app: &mut App, key: KeyEvent) {
         KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => app.quit(),
 
         // Filter mode
-        KeyCode::Char('/') => app.enter_filter_mode(),
-        KeyCode::Char('f') if key.modifiers.contains(KeyModifiers::CONTROL) => app.enter_filter_mode(),
-        KeyCode::Char('x') if key.modifiers.contains(KeyModifiers::CONTROL) => app.clear_filter(),
+        KeyCode::Enter => app.enter_filter_mode(),
+        KeyCode::Esc => app.clear_filter(), // Clear filter when Esc pressed outside filter mode
 
         // Navigate packet list
         KeyCode::Up | KeyCode::Char('k') => app.select_previous(),
@@ -62,20 +61,20 @@ fn handle_filter_input(app: &mut App, key: KeyEvent) {
     match key.code {
         // Exit filter mode without applying
         KeyCode::Esc => app.exit_filter_mode(),
-        
+
         // Apply filter
         KeyCode::Enter => app.apply_filter_input(),
-        
+
         // Delete last character
         KeyCode::Backspace => {
             app.filter_input.pop();
         }
-        
+
         // Add character to input
         KeyCode::Char(c) => {
             app.filter_input.push(c);
         }
-        
+
         _ => {}
     }
 }
