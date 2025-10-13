@@ -89,12 +89,13 @@ impl<'a> EthernetPacket<'a> {
     ///
     /// See [`ParseEthernetError`].
     pub fn new(header: &pcap::PacketHeader, raw: &'a [u8]) -> Result<Self, ParseEthernetError> {
-        let seconds = header.ts.tv_sec; // `as i64` is required, since on Windows `tv_sec` is `c_long` which is `i32`
+        let seconds = header.ts.tv_sec;
         let nanos = header.ts.tv_usec * 1000;
         let nanos = nanos
             .try_into()
             .map_err(|_| ParseEthernetError::TimestampOutOfRange)?;
-        let timestamp = DateTime::from_timestamp(seconds, nanos)
+        #[allow(clippy::useless_conversion, reason = ".into() is required for Windows")]
+        let timestamp = DateTime::from_timestamp(seconds.into(), nanos)
             .ok_or(ParseEthernetError::TimestampOutOfRange)?;
         if raw.len() < 14 {
             return Err(ParseEthernetError::PacketTooShort);
