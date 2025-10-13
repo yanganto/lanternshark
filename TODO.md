@@ -2,6 +2,7 @@
 
 ## Planned
 
+- HTTP, DNS, MDNS?
 - Upper-case hex
 - Scroll each panel with wheel / Tabbing through sections and use the same hotkeys
 

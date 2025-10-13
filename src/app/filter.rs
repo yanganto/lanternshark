@@ -7,6 +7,7 @@ use std::fmt;
 ///
 /// # Syntax Examples
 ///
+/// - `HTTP` - Search for "HTTP" in packet data
 /// - `protocol:tcp` - Filter by protocol
 /// - `protocol:tcp,udp` - Multiple protocols (OR)
 /// - `source:192.168.1.1` - Exact source IP
@@ -14,7 +15,7 @@ use std::fmt;
 /// - `length:>1000` - Minimum length
 /// - `length:<500` - Maximum length
 /// - `length:100-1500` - Length range
-/// - `contains:HTTP` - Contains text in info/protocol
+/// - `HTTP proto:tcp` - Search for "HTTP" in TCP packets
 ///
 /// Multiple filters are combined with AND logic.
 #[derive(Debug, Default, Clone)]
@@ -29,21 +30,22 @@ pub struct PacketFilter {
     min_length: Option<usize>,
     /// Maximum packet length (inclusive)
     max_length: Option<usize>,
-    /// Text that must appear in info or protocol fields
-    contains_text: Option<String>,
+    /// Search terms (text to find in packet data or summary)
+    search_terms: Vec<String>,
 }
 
 impl PacketFilter {
     /// Parse a filter from user input string.
     ///
-    /// Format: `key:value key:value ...`
+    /// Format: `key:value key:value ... searchterm`
     ///
     /// Supported keys:
     /// - `protocol`, `proto`: Protocol name(s)
     /// - `source`, `src`: Source address(es)
     /// - `destination`, `dest`, `dst`: Destination address(es)
     /// - `length`, `len`: Packet length (supports >, <, ranges)
-    /// - `contains`: Text search in packet info
+    ///
+    /// Any word without a colon is treated as a search term.
     pub fn parse(input: &str) -> Result<Self, String> {
         let input = input.trim();
         if input.is_empty() {
@@ -73,19 +75,15 @@ impl PacketFilter {
                     "length" | "len" => {
                         Self::parse_length_filter(value, &mut filter)?;
                     }
-                    "contains" => {
-                        filter.contains_text = Some(value.to_string());
-                    }
                     _ => {
                         return Err(format!(
-                            "Unknown filter key: '{key}'. Supported: protocol, source, destination, length, contains",
+                            "Unknown filter key: '{key}'. Supported: protocol, source, destination, length",
                         ));
                     }
                 }
             } else {
-                return Err(format!(
-                    "Invalid filter format: '{part}'. Expected 'key:value'",
-                ));
+                // No colon found - treat as search term
+                filter.search_terms.push(part.to_string());
             }
         }
 
@@ -131,12 +129,20 @@ impl PacketFilter {
             }
         }
 
-        // Text contains filter (searches in info and protocol)
-        if let Some(ref text) = self.contains_text {
-            let text_lower = text.to_lowercase();
-            if !packet.info.to_lowercase().contains(&text_lower)
-                && !packet.protocol.to_lowercase().contains(&text_lower)
-            {
+        // Search terms (searches in summary/info field and raw packet data)
+        // All search terms must be found (AND logic)
+        for term in &self.search_terms {
+            let term_lower = term.to_lowercase();
+            let found_in_summary = packet.info.to_lowercase().contains(&term_lower)
+                || packet.protocol.to_lowercase().contains(&term_lower);
+
+            // Also search in raw packet data (case-insensitive byte search)
+            let term_bytes = term.as_bytes();
+            let found_in_raw = packet.raw
+                .windows(term_bytes.len())
+                .any(|window| window.eq_ignore_ascii_case(term_bytes));
+
+            if !found_in_summary && !found_in_raw {
                 return false;
             }
         }
@@ -231,8 +237,9 @@ impl fmt::Display for PacketFilter {
             parts.push(format!("length:<{max}"));
         }
 
-        if let Some(ref text) = self.contains_text {
-            parts.push(format!("contains:{text}"));
+        // Add search terms (without key:value format)
+        for term in &self.search_terms {
+            parts.push(term.clone());
         }
 
         write!(f, "{}", parts.join(" "))

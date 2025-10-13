@@ -122,13 +122,12 @@ sudo ./target/release/termshark capture -d <interface> -s out.pcap
 
 ### 过滤语法
 
-基本格式：`key:value key2:value2`（不同 key 之间 AND，同 key 多值用逗号 OR）
+基本格式：`searchterm key:value key2:value2`（不同 key 之间 AND，同 key 多值用逗号 OR）
 
 - `protocol`/`proto`：如 `protocol:tcp` 或 `proto:icmp,udp`
 - `source`/`src`：源地址精确匹配，如 `source:192.168.1.1`
 - `destination`/`dest`/`dst`：目的地址精确匹配，如 `dst:8.8.8.8`
 - `length`/`len`：长度比较与范围，示例：`len:>1000`、`length:<500`、`len:100-1500`
-- `contains`：在协议或 Info 字段中搜索大小写敏感文本，如 `contains:HTTP`
 
 示例：
 
@@ -136,7 +135,7 @@ sudo ./target/release/termshark capture -d <interface> -s out.pcap
 protocol:tcp,udp                       # TCP 或 UDP
 source:192.168.1.100                   # 指定源
 protocol:tcp length:>1000              # 大包 TCP
-contains:HTTP source:192.168.1.1       # 某主机的 HTTP 流量
+HTTP source:192.168.1.1                # 给定 IP 的包含 "HTTP" 的流量
 protocol:icmp,arp length:<100          # 小包 ICMP/ARP
 ```
 

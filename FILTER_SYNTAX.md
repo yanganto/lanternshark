@@ -1,14 +1,30 @@
 # Filter Syntax Guide
 
-The packet filter uses a GitHub-like syntax with `key:value` pairs. Multiple filters can be combined with space-separated syntax, and they are evaluated with AND logic between different keys and OR logic within the same key.
+The packet filter uses a simple, intuitive syntax. Use `key:value` pairs for specific filters, and plain text for searching packet content.
 
 ## Basic Syntax
 
 ```
-key:value key2:value2
+searchterm key:value key2:value2
 ```
 
+Any text without a colon (`:`) is treated as a search term and will match against both the packet summary and raw packet data.
+
 ## Supported Filters
+
+### Search Terms (No Key Required)
+
+Search for text in packet summary fields (protocol, info) and raw packet data. Multiple search terms can be used (all must match - AND logic).
+
+**Examples:**
+- `HTTP` - Packets containing "HTTP"
+- `GET` - Packets containing "GET"
+- `HTTP proto:tcp` - TCP packets containing "HTTP"
+- `DNS 192.168.1.1` - Packets to/from 192.168.1.1 containing "DNS"
+
+**Note:** Search is case-insensitive and searches both:
+1. Summary/info fields (protocol name, packet description)
+2. Raw packet data (actual bytes in the packet)
 
 ### Protocol Filter
 
@@ -56,48 +72,47 @@ Filter packets by size in bytes. Supports comparisons and ranges.
 - `length:<500` - Packets smaller than 500 bytes
 - `len:100-1500` - Packets between 100 and 1500 bytes (inclusive)
 
-### Text Search Filter
-
-Search for text in packet protocol or info fields. Case-sensitive.
-
-**Keys:** `contains`
-
-**Examples:**
-- `contains:HTTP` - Packets containing "HTTP" in info/protocol
-- `contains:SYN` - Packets containing "SYN"
-- `contains:DNS` - Packets containing "DNS"
-
 ## Combining Filters
 
 Multiple filters are combined with AND logic. All conditions must be satisfied.
 
 **Examples:**
 
-1. **TCP packets from specific source:**
+1. **Search for the text "HTTP":**
+   ```
+   HTTP
+   ```
+
+2. **TCP packets from specific source:**
    ```
    protocol:tcp source:192.168.1.100
    ```
 
-2. **Large UDP packets:**
+3. **Search for "HTTP" in TCP packets:**
+   ```
+   HTTP proto:tcp
+   ```
+
+4. **Large UDP packets:**
    ```
    protocol:udp length:>1000
    ```
 
-3. **HTTP traffic between specific hosts:**
+5. **Search between specific hosts:**
    ```
-   contains:HTTP source:192.168.1.100 dest:10.0.0.50
+   GET source:192.168.1.100 dest:10.0.0.50
    ```
 
-4. **Small ICMP or ARP packets:**
+6. **Small ICMP or ARP packets:**
    ```
    protocol:icmp,arp length:<100
    ```
 
-5. **Complex filter:**
+7. **Complex filter:**
    ```
-   protocol:tcp,udp source:192.168.1.1 length:100-1500 contains:DNS
+   DNS proto:tcp,udp source:192.168.1.1 length:100-1500
    ```
-   This shows TCP or UDP packets from 192.168.1.1, between 100-1500 bytes, containing "DNS".
+   This shows TCP or UDP packets from 192.168.1.1, between 100-1500 bytes, containing "DNS" in the data.
 
 ## Keyboard Shortcuts
 
@@ -116,14 +131,26 @@ When a filter is active:
 
 ## Tips
 
-1. **Exact matches:** All IP addresses must match exactly (no wildcards)
+1. **Simple searches**: Just type the text you're looking for (e.g., `HTTP`, `DNS`, `google`)
 2. **Multiple values:** Use commas within a single key for OR logic
-3. **Case sensitivity:** Protocol names and text searches are case-sensitive
+3. **Case insensitive:** Search terms match case-insensitively in both summary and raw data
 4. **Real-time filtering:** Filters apply to new packets as they arrive
 5. **Error messages:** Invalid syntax shows helpful error messages
 6. **Visual feedback:** The filter bar shows when filtering is active
 
 ## Common Use Cases
+
+### Find HTTP Traffic
+```
+HTTP
+```
+Simple search for any packet containing "HTTP".
+
+### Find Specific Text in Packets
+```
+google.com
+```
+Search for "google.com" in packet data.
 
 ### Debug Network Issues
 ```
@@ -137,11 +164,11 @@ length:>5000
 ```
 See packets larger than 5KB.
 
-### HTTP/HTTPS Traffic
+### HTTP Traffic Only
 ```
-protocol:tcp contains:HTTP
+HTTP proto:tcp
 ```
-Watch web traffic.
+Watch TCP packets containing HTTP data.
 
 ### Monitor Specific Hosts
 ```
@@ -151,6 +178,6 @@ Filter to see traffic from specific internal hosts.
 
 ### DNS Queries
 ```
-protocol:udp contains:DNS
+DNS
 ```
-Monitor DNS activity.
+Monitor DNS activity (searches in packet data and info fields).

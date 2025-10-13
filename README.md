@@ -66,10 +66,10 @@ Alternatively, you can [configure with `setcap`](https://github.com/rust-pcap/pc
 
 ### 🔍 Filter Syntax
 
-The filter uses a GitHub-like syntax with `key:value` pairs:
+The filter uses a GitHub-like syntax, i.e. search terms and `key:value` pairs:
 
 ```text
-protocol:tcp source:192.168.1.1 length:>1000
+searchterm protocol:tcp source:192.168.1.1 length:>1000
 ```
 
 **Supported filters:**
@@ -77,15 +77,14 @@ protocol:tcp source:192.168.1.1 length:>1000
 - `source` / `src`: Filter by source IP address (exact match)
 - `destination` / `dest` / `dst`: Filter by destination IP address (exact match)
 - `length` / `len`: Filter by packet length (supports `>`, `<`, ranges)
-- `contains`: Search text in packet info/protocol fields
 
 **Examples:**
 
 ```text
-protocol:tcp,udp                          # TCP or UDP packets
-source:192.168.1.100                      # From specific source
-protocol:tcp length:>1000                 # Large TCP packets
-contains:HTTP source:192.168.1.1          # HTTP traffic from source
+protocol:tcp,udp           # TCP or UDP packets
+source:192.168.1.100       # From specific source
+protocol:tcp length:>1000  # Large TCP packets
+HTTP source:192.168.1.1    # Traffic containing "HTTP" from source
 ```
 
 See [`FILTER_SYNTAX.md`](./FILTER_SYNTAX.md) for detailed documentation.
