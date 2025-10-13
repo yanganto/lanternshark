@@ -45,19 +45,47 @@ Alternatively, you can [configure with `setcap`](https://github.com/rust-pcap/pc
 
 ### ⌨️ Keyboard Control
 
-- **↑/↓** / **j/k**: Select previous/next packet
-- **Page Up/Down**: Fast scroll (a page at a time)
+#### Navigation
+
+- **↑/↓** or **j/k**: Select previous/next packet
+- **Page Up/Down**: Scroll one page at a time (adaptive to terminal size)
 - **Home**: Jump to first packet
 - **End**: Jump to last packet
 - **w/s**: Scroll packet details panel up/down
 - **e/d**: Scroll hex dump panel up/down
+
+#### Filtering
+
+- **Enter**: Enter filter mode (or apply filter when editing)
+- **Esc**: Clear active filter (or cancel when editing)
+- **Backspace**: Delete character while editing filter
+
+#### Application
+
 - **q** or **Ctrl+C**: Quit the application
-- **Enter** / **Esc**: Toggle / clear filters.
 
 ### 🔍 Filter Syntax
 
+The filter uses a GitHub-like syntax with `key:value` pairs:
+
 ```text
-key:value key2:value2
+protocol:tcp source:192.168.1.1 length:>1000
+```
+
+**Supported filters:**
+- `protocol` / `proto`: Filter by protocol (e.g., `tcp`, `udp`, `icmp`)
+- `source` / `src`: Filter by source IP address (exact match)
+- `destination` / `dest` / `dst`: Filter by destination IP address (exact match)
+- `length` / `len`: Filter by packet length (supports `>`, `<`, ranges)
+- `contains`: Search text in packet info/protocol fields
+
+**Examples:**
+
+```text
+protocol:tcp,udp                          # TCP or UDP packets
+source:192.168.1.100                      # From specific source
+protocol:tcp length:>1000                 # Large TCP packets
+contains:HTTP source:192.168.1.1          # HTTP traffic from source
 ```
 
 See [`FILTER_SYNTAX.md`](./FILTER_SYNTAX.md) for detailed documentation.
