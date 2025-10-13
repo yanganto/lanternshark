@@ -1,4 +1,4 @@
-# termshark
+# 🦈 TermShark
 
 [![GitHub License](https://img.shields.io/github/license/PRO-2684/termshark?logo=opensourceinitiative)](https://github.com/PRO-2684/termshark/blob/main/LICENSE)
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/PRO-2684/termshark/release.yml?logo=githubactions)](https://github.com/PRO-2684/termshark/blob/main/.github/workflows/release.yml)
@@ -8,7 +8,7 @@
 [![Crates.io Total Downloads](https://img.shields.io/crates/d/termshark?logo=rust)](https://crates.io/crates/termshark)
 [![docs.rs](https://img.shields.io/docsrs/termshark?logo=rust)](https://docs.rs/termshark)
 
-WireShark in the terminal. Note that this is a toy project, with majority features missing.
+WireShark in the terminal. Note that this is a toy project, with a lot of features missing.
 
 ## 📥 Installation
 
@@ -46,12 +46,13 @@ Alternatively, you can [configure with `setcap`](https://github.com/rust-pcap/pc
 ### ⌨️ Keyboard Control
 
 - **↑/↓** / **j/k**: Select previous/next packet
-- **Page Up/Down**: Fast scroll (10 packets at a time)
+- **Page Up/Down**: Fast scroll (a page at a time)
 - **Home**: Jump to first packet
 - **End**: Jump to last packet
 - **w/s**: Scroll packet details panel up/down
 - **e/d**: Scroll hex dump panel up/down
 - **q** or **Ctrl+C**: Quit the application
+- **Enter** / **Esc**: Toggle / clear filters.
 
 ### 🔍 Filter Syntax
 
@@ -59,7 +60,15 @@ Alternatively, you can [configure with `setcap`](https://github.com/rust-pcap/pc
 key:value key2:value2
 ```
 
-## 💡 Samples
+See [`FILTER_SYNTAX.md`](./FILTER_SYNTAX.md) for detailed documentation.
+
+## 💡 Demos & Samples
+
+<details><summary>📽️ Demo asciicast</summary>
+
+[![asciicast](https://asciinema.org/a/qgBIPexnCMOzXZbhqdusL27P7.svg)](https://asciinema.org/a/qgBIPexnCMOzXZbhqdusL27P7)
+
+</details>
 
 Here's a list of sample packets for testing. All of them are [taken from WireShark wiki](https://wiki.wireshark.org/SampleCaptures), so feel free to visit it for more.
 
