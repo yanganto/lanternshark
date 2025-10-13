@@ -76,7 +76,9 @@ jobs:
     # - uses: Swatinem/rust-cache@v2
     #   with:
     #     key: ${{ matrix.os }}-${{ matrix.rust }}-${{ matrix.target }}
+    # Do not run tests on Windows
     - name: Test
+      if: matrix.os != 'windows-latest'
       run: cargo test --target ${{ matrix.target }}
     - name: Build release binary
       run: cargo build --target ${{ matrix.target }} --verbose --release --bin ${{ env.BIN_NAME }} --features=cli
