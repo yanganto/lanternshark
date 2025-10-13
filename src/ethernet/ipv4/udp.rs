@@ -1,7 +1,7 @@
 //! UDP packet parsing.
 
+use super::{PacketDetail, ParseIpv4Error, Protocol};
 use std::fmt;
-use super::{Protocol, ParseIpv4Error, PacketDetail};
 
 /// A UDP packet.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -35,7 +35,10 @@ impl From<ParseUdpError> for ParseIpv4Error {
 
 impl<'a> UdpPacket<'a> {
     /// Create a new UDP packet from raw data.
-    #[must_use]
+    ///
+    /// # Errors
+    ///
+    /// See [`ParseUdpError`].
     pub const fn new(raw: &'a [u8]) -> Result<Self, ParseUdpError> {
         if raw.len() < 8 {
             return Err(ParseUdpError::PacketTooShort);
@@ -62,14 +65,28 @@ impl Protocol for UdpPacket<'_> {
 
 impl fmt::Display for UdpPacket<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let Self { src_port, dest_port, data, .. } = self;
-        write!(f, "UDP: {} bytes from :{src_port} to :{dest_port}", data.len())
+        let Self {
+            src_port,
+            dest_port,
+            data,
+            ..
+        } = self;
+        write!(
+            f,
+            "UDP: {} bytes from :{src_port} to :{dest_port}",
+            data.len()
+        )
     }
 }
 
 impl PacketDetail for UdpPacket<'_> {
     fn summary(&self) -> String {
-        let Self { src_port, dest_port, data, .. } = self;
+        let Self {
+            src_port,
+            dest_port,
+            data,
+            ..
+        } = self;
         format!("{} bytes from :{src_port} to :{dest_port}", data.len())
     }
 

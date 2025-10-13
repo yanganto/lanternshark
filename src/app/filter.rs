@@ -1,6 +1,6 @@
 //! Packet filtering functionality.
 
-use crate::app::packet_info::PacketInfo;
+use super::packet_info::PacketInfo;
 use std::fmt;
 
 /// Packet filter supporting GitHub-like syntax.
@@ -56,19 +56,19 @@ impl PacketFilter {
             if let Some((key, value)) = part.split_once(':') {
                 match key.to_lowercase().as_str() {
                     "protocol" | "proto" => {
-                        filter.protocols.extend(
-                            value.split(',').map(|s| s.trim().to_lowercase())
-                        );
+                        filter
+                            .protocols
+                            .extend(value.split(',').map(|s| s.trim().to_lowercase()));
                     }
                     "source" | "src" => {
-                        filter.sources.extend(
-                            value.split(',').map(|s| s.trim().to_string())
-                        );
+                        filter
+                            .sources
+                            .extend(value.split(',').map(|s| s.trim().to_string()));
                     }
                     "destination" | "dest" | "dst" => {
-                        filter.destinations.extend(
-                            value.split(',').map(|s| s.trim().to_string())
-                        );
+                        filter
+                            .destinations
+                            .extend(value.split(',').map(|s| s.trim().to_string()));
                     }
                     "length" | "len" => {
                         Self::parse_length_filter(value, &mut filter)?;
@@ -76,10 +76,16 @@ impl PacketFilter {
                     "contains" => {
                         filter.contains_text = Some(value.to_string());
                     }
-                    _ => return Err(format!("Unknown filter key: '{}'. Supported: protocol, source, destination, length, contains", key)),
+                    _ => {
+                        return Err(format!(
+                            "Unknown filter key: '{key}'. Supported: protocol, source, destination, length, contains",
+                        ));
+                    }
                 }
             } else {
-                return Err(format!("Invalid filter format: '{}'. Expected 'key:value'", part));
+                return Err(format!(
+                    "Invalid filter format: '{part}'. Expected 'key:value'",
+                ));
             }
         }
 
@@ -129,7 +135,8 @@ impl PacketFilter {
         if let Some(ref text) = self.contains_text {
             let text_lower = text.to_lowercase();
             if !packet.info.to_lowercase().contains(&text_lower)
-                && !packet.protocol.to_lowercase().contains(&text_lower) {
+                && !packet.protocol.to_lowercase().contains(&text_lower)
+            {
                 return false;
             }
         }
@@ -149,32 +156,43 @@ impl PacketFilter {
 
         if value.starts_with('>') {
             filter.min_length = Some(
-                value[1..].trim().parse()
-                    .map_err(|_| format!("Invalid length value: '{}'", value))?
+                value[1..]
+                    .trim()
+                    .parse()
+                    .map_err(|_| format!("Invalid length value: '{value}'"))?,
             );
         } else if value.starts_with('<') {
             filter.max_length = Some(
-                value[1..].trim().parse()
-                    .map_err(|_| format!("Invalid length value: '{}'", value))?
+                value[1..]
+                    .trim()
+                    .parse()
+                    .map_err(|_| format!("Invalid length value: '{value}'"))?,
             );
         } else if value.contains('-') {
             let parts: Vec<&str> = value.split('-').collect();
             if parts.len() == 2 {
-                let min: usize = parts[0].trim().parse()
-                    .map_err(|_| format!("Invalid length range: '{}'", value))?;
-                let max: usize = parts[1].trim().parse()
-                    .map_err(|_| format!("Invalid length range: '{}'", value))?;
+                let min: usize = parts[0]
+                    .trim()
+                    .parse()
+                    .map_err(|_| format!("Invalid length range: '{value}'"))?;
+                let max: usize = parts[1]
+                    .trim()
+                    .parse()
+                    .map_err(|_| format!("Invalid length range: '{value}'"))?;
                 if min > max {
-                    return Err(format!("Invalid range: min ({}) > max ({})", min, max));
+                    return Err(format!("Invalid range: min ({min}) > max ({max})"));
                 }
                 filter.min_length = Some(min);
                 filter.max_length = Some(max);
             } else {
-                return Err(format!("Invalid length range: '{}'. Expected 'min-max'", value));
+                return Err(format!(
+                    "Invalid length range: '{value}'. Expected 'min-max'",
+                ));
             }
         } else {
-            let len: usize = value.parse()
-                .map_err(|_| format!("Invalid length value: '{}'", value))?;
+            let len: usize = value
+                .parse()
+                .map_err(|_| format!("Invalid length value: '{value}'"))?;
             filter.min_length = Some(len);
             filter.max_length = Some(len);
         }
@@ -202,19 +220,19 @@ impl fmt::Display for PacketFilter {
         if let Some(min) = self.min_length {
             if let Some(max) = self.max_length {
                 if min == max {
-                    parts.push(format!("length:{}", min));
+                    parts.push(format!("length:{min}", ));
                 } else {
-                    parts.push(format!("length:{}-{}", min, max));
+                    parts.push(format!("length:{min}-{max}"));
                 }
             } else {
-                parts.push(format!("length:>{}", min));
+                parts.push(format!("length:>{min}"));
             }
         } else if let Some(max) = self.max_length {
-            parts.push(format!("length:<{}", max));
+            parts.push(format!("length:<{max}"));
         }
 
         if let Some(ref text) = self.contains_text {
-            parts.push(format!("contains:{}", text));
+            parts.push(format!("contains:{text}"));
         }
 
         write!(f, "{}", parts.join(" "))

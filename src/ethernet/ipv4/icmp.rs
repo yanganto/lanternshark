@@ -1,9 +1,9 @@
 //! ICMP packet parsing.
 // https://www.wikiwand.com/en/articles/Internet_Control_Message_Protocol
 
+use super::{PacketDetail, ParseIpv4Error, Protocol};
 use num_enum::{FromPrimitive, IntoPrimitive};
 use std::fmt;
-use super::{Protocol, ParseIpv4Error, PacketDetail};
 
 /// An ICMP packet.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -60,7 +60,6 @@ impl<'a> IcmpPacket<'a> {
     /// # Errors
     ///
     /// See [`ParseIcmpError`].
-    #[must_use]
     pub fn new(raw: &'a [u8]) -> Result<Self, ParseIcmpError> {
         if raw.len() < 8 {
             // ICMP header is at least 8 bytes
@@ -102,19 +101,23 @@ impl fmt::Display for IcmpPacket<'_> {
             data,
             ..
         } = self;
-        write!(f, "ICMP: {icmp_type} ({code}), checksum {checksum}, data {} bytes", data.len())
+        write!(
+            f,
+            "ICMP: {icmp_type} ({code}), checksum {checksum}, data {} bytes",
+            data.len()
+        )
     }
 }
 
 impl fmt::Display for IcmpType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            IcmpType::EchoReply => write!(f, "Echo Reply"),
-            IcmpType::DestinationUnreachable => write!(f, "Destination Unreachable"),
-            IcmpType::EchoRequest => write!(f, "Echo Request"),
-            IcmpType::TimeExceeded => write!(f, "Time Exceeded"),
-            IcmpType::ParameterProblem => write!(f, "Parameter Problem"),
-            IcmpType::Unknown(t) => write!(f, "Unknown (0x{t:02x})"),
+            Self::EchoReply => write!(f, "Echo Reply"),
+            Self::DestinationUnreachable => write!(f, "Destination Unreachable"),
+            Self::EchoRequest => write!(f, "Echo Request"),
+            Self::TimeExceeded => write!(f, "Time Exceeded"),
+            Self::ParameterProblem => write!(f, "Parameter Problem"),
+            Self::Unknown(t) => write!(f, "Unknown (0x{t:02x})"),
         }
     }
 }

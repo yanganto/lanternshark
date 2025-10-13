@@ -1,8 +1,8 @@
 //! IPv6 packet parsing.
 // https://www.wikiwand.com/en/articles/IPv6
 
-use std::{fmt, net::Ipv6Addr};
 use super::{EtherType, PacketDetail};
+use std::{fmt, net::Ipv6Addr};
 
 /// An IPv6 packet.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -40,7 +40,10 @@ pub enum ParseIpv6Error {
 
 impl<'a> Ipv6Packet<'a> {
     /// Create a new IPv6 packet from raw data.
-    #[must_use]
+    ///
+    /// # Errors
+    ///
+    /// See [`ParseIpv6Error`].
     pub fn new(raw: &'a [u8]) -> Result<Self, ParseIpv6Error> {
         if raw.len() < 40 {
             return Err(ParseIpv6Error::PacketTooShort);
@@ -51,9 +54,9 @@ impl<'a> Ipv6Packet<'a> {
             return Err(ParseIpv6Error::InvalidVersion);
         }
         let traffic_class = ((header[0] & 0x0F) << 4) | (header[1] >> 4);
-        let flow_label = ((header[1] as u32 & 0x0F) << 16)
-            | ((header[2] as u32) << 8)
-            | (header[3] as u32);
+        let flow_label = ((u32::from(header[1]) & 0x0F) << 16)
+            | (u32::from(header[2]) << 8)
+            | u32::from(header[3]);
         let payload_length = u16::from_be_bytes([header[4], header[5]]);
         let next_header = header[6];
         let hop_limit = header[7];
@@ -96,14 +99,24 @@ impl fmt::Display for Ipv6Packet<'_> {
             destination,
             ..
         } = self;
-        write!(f, "IPv6: {source} -> {destination}, Flow Label {flow_label:#06x}, Hop Limit {hop_limit}, Payload Length {payload_length}")
+        write!(
+            f,
+            "IPv6: {source} -> {destination}, Flow Label {flow_label:#06x}, Hop Limit {hop_limit}, Payload Length {payload_length}"
+        )
     }
 }
 
 impl PacketDetail for Ipv6Packet<'_> {
     fn summary(&self) -> String {
-        let Self { payload_length, flow_label, hop_limit, .. } = self;
-        format!("Flow Label {flow_label:#06x}, Hop Limit {hop_limit}, Payload Length {payload_length}")
+        let Self {
+            payload_length,
+            flow_label,
+            hop_limit,
+            ..
+        } = self;
+        format!(
+            "Flow Label {flow_label:#06x}, Hop Limit {hop_limit}, Payload Length {payload_length}"
+        )
     }
 
     fn details(&self) -> Vec<String> {

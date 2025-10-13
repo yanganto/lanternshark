@@ -6,12 +6,12 @@ pub mod igmp;
 pub mod tcp;
 pub mod udp;
 
-use std::{fmt, net::Ipv4Addr};
 use super::{EtherType, PacketDetail};
 use icmp::{IcmpPacket, ParseIcmpError};
 use igmp::{IgmpPacket, ParseIgmpError};
-use tcp::{TcpPacket, ParseTcpError};
-use udp::{UdpPacket, ParseUdpError};
+use std::{fmt, net::Ipv4Addr};
+use tcp::{ParseTcpError, TcpPacket};
+use udp::{ParseUdpError, UdpPacket};
 
 /// An IPv4 packet.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -101,6 +101,7 @@ pub enum Ipv4PacketInner<'a> {
 
 impl Ipv4PacketInner<'_> {
     /// Get the protocol number.
+    #[must_use]
     pub const fn protocol_number(&self) -> u8 {
         match self {
             Self::Icmp(_) => IcmpPacket::PROTOCOL,
@@ -112,6 +113,7 @@ impl Ipv4PacketInner<'_> {
     }
 
     /// Get the protocol slug.
+    #[must_use]
     pub const fn slug(&self) -> &'static str {
         match self {
             Self::Icmp(_) => "ICMP",
@@ -140,7 +142,6 @@ pub enum ParseIpv4Error {
     ParseTcpError(ParseTcpError),
     /// Error parsing inner UDP packet.
     ParseUdpError(ParseUdpError),
-
 }
 
 impl<'a> Ipv4Packet<'a> {
@@ -257,6 +258,7 @@ impl fmt::Display for UnknownIpv4Packet<'_> {
 
 impl Ipv4PacketDsf {
     /// Create a new Differentiated Services Field from a byte.
+    #[must_use]
     pub const fn new(byte: u8) -> Self {
         Self {
             dscp: byte >> 2,
@@ -267,6 +269,7 @@ impl Ipv4PacketDsf {
 
 impl Ipv4PacketFlags {
     /// Create new IPv4 packet flags from a 3-bit value.
+    #[must_use]
     pub const fn new(bits: u8) -> Self {
         Self {
             reserved: (bits & 0b100) != 0,
@@ -284,14 +287,26 @@ impl PacketDetail for Ipv4Packet<'_> {
     fn details(&self) -> Vec<String> {
         vec![
             format!("Version: {}", self.version),
-            format!("Header Length: {} bytes ({})", self.header_length * 4, self.header_length),
+            format!(
+                "Header Length: {} bytes ({})",
+                self.header_length * 4,
+                self.header_length
+            ),
             format!("DSCP: {}, ECN: {}", self.dsf.dscp, self.dsf.ecn),
             format!("Total Length: {}", self.total_length),
             format!("Identification: 0x{:04x}", self.identification),
-            format!("Flags: DF={}, MF={}", self.flags.dont_fragment as u8, self.flags.more_fragments as u8),
+            format!(
+                "Flags: DF={}, MF={}",
+                u8::from(self.flags.dont_fragment),
+                u8::from(self.flags.more_fragments)
+            ),
             format!("Fragment Offset: {}", self.fragment_offset),
             format!("Time to Live: {}", self.ttl),
-            format!("Protocol: {} ({})", self.inner.slug(), self.inner.protocol_number()),
+            format!(
+                "Protocol: {} ({})",
+                self.inner.slug(),
+                self.inner.protocol_number()
+            ),
             format!("Header Checksum: 0x{:04x}", self.header_checksum),
             format!("Source: {}", self.source),
             format!("Destination: {}", self.destination),

@@ -1,8 +1,8 @@
 //! TCP packet parsing.
 // https://www.wikiwand.com/en/articles/Transmission_Control_Protocol
 
+use super::{PacketDetail, ParseIpv4Error, Protocol};
 use std::fmt;
-use super::{Protocol, ParseIpv4Error, PacketDetail};
 
 /// A TCP packet.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -35,7 +35,8 @@ pub struct TcpPacket<'a> {
 }
 
 /// Flags in a TCP packet.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(clippy::struct_excessive_bools, reason = "I'm not a state machine")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct TcpPacketFlags {
     /// Congestion window reduced (CWR) flag.
     pub cwr: bool,
@@ -72,7 +73,10 @@ impl From<ParseTcpError> for ParseIpv4Error {
 
 impl<'a> TcpPacket<'a> {
     /// Create a new TCP packet from raw data.
-    #[must_use]
+    ///
+    /// # Errors
+    ///
+    /// See [`ParseTcpError`].
     pub fn new(raw: &'a [u8]) -> Result<Self, ParseTcpError> {
         if raw.len() < 20 {
             return Err(ParseTcpError::PacketTooShort);
@@ -81,10 +85,11 @@ impl<'a> TcpPacket<'a> {
         let src_port = u16::from_be_bytes([header[0], header[1]]);
         let dest_port = u16::from_be_bytes([header[2], header[3]]);
         let sequence_number = u32::from_be_bytes([header[4], header[5], header[6], header[7]]);
-        let acknowledgment_number = u32::from_be_bytes([header[8], header[9], header[10], header[11]]);
+        let acknowledgment_number =
+            u32::from_be_bytes([header[8], header[9], header[10], header[11]]);
         let data_offset_and_reserved = header[12];
         let data_offset = data_offset_and_reserved >> 4;
-        if data_offset < 5 || data_offset > 15 {
+        if !(5..=15).contains(&data_offset) {
             return Err(ParseTcpError::InvalidDataOffset);
         }
         let flags = TcpPacketFlags::from(header[13]);
@@ -119,15 +124,34 @@ impl Protocol for TcpPacket<'_> {
 
 impl fmt::Display for TcpPacket<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let Self { flags, src_port, dest_port, data, .. } = self;
-        write!(f, "TCP: [{flags}] {} bytes from :{src_port} to :{dest_port}", data.len())
+        let Self {
+            flags,
+            src_port,
+            dest_port,
+            data,
+            ..
+        } = self;
+        write!(
+            f,
+            "TCP: [{flags}] {} bytes from :{src_port} to :{dest_port}",
+            data.len()
+        )
     }
 }
 
 impl PacketDetail for TcpPacket<'_> {
     fn summary(&self) -> String {
-        let Self { flags, src_port, dest_port, data, .. } = self;
-        format!("[{flags}] {} bytes from :{src_port} to :{dest_port}", data.len())
+        let Self {
+            flags,
+            src_port,
+            dest_port,
+            data,
+            ..
+        } = self;
+        format!(
+            "[{flags}] {} bytes from :{src_port} to :{dest_port}",
+            data.len()
+        )
     }
 
     fn details(&self) -> Vec<String> {
@@ -136,7 +160,11 @@ impl PacketDetail for TcpPacket<'_> {
             format!("Destination Port: {}", self.dest_port),
             format!("Sequence Number: {}", self.sequence_number),
             format!("Acknowledgment Number: {}", self.acknowledgment_number),
-            format!("Data Offset: {} ({} bytes)", self.data_offset, self.data_offset * 4),
+            format!(
+                "Data Offset: {} ({} bytes)",
+                self.data_offset,
+                self.data_offset * 4
+            ),
             format!("Flags: {}", self.flags),
             format!("  CWR: {}", self.flags.cwr),
             format!("  ECE: {}", self.flags.ece),
@@ -185,29 +213,30 @@ impl From<u8> for TcpPacketFlags {
 impl fmt::Display for TcpPacketFlags {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut flags = Vec::new();
-        if self.cwr { flags.push("CWR"); }
-        if self.ece { flags.push("ECE"); }
-        if self.urg { flags.push("URG"); }
-        if self.ack { flags.push("ACK"); }
-        if self.psh { flags.push("PSH"); }
-        if self.rst { flags.push("RST"); }
-        if self.syn { flags.push("SYN"); }
-        if self.fin { flags.push("FIN"); }
-        write!(f, "{}", flags.join(", "))
-    }
-}
-
-impl Default for TcpPacketFlags {
-    fn default() -> Self {
-        Self {
-            cwr: false,
-            ece: false,
-            urg: false,
-            ack: false,
-            psh: false,
-            rst: false,
-            syn: false,
-            fin: false,
+        if self.cwr {
+            flags.push("CWR");
         }
+        if self.ece {
+            flags.push("ECE");
+        }
+        if self.urg {
+            flags.push("URG");
+        }
+        if self.ack {
+            flags.push("ACK");
+        }
+        if self.psh {
+            flags.push("PSH");
+        }
+        if self.rst {
+            flags.push("RST");
+        }
+        if self.syn {
+            flags.push("SYN");
+        }
+        if self.fin {
+            flags.push("FIN");
+        }
+        write!(f, "{}", flags.join(", "))
     }
 }

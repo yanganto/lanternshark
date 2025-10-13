@@ -1,7 +1,7 @@
 use std::path::Path;
 
-use termshark::ethernet::{EthernetPacket, ParseEthernetError};
 use pcap::Capture;
+use termshark::ethernet::{EthernetPacket, ParseEthernetError};
 
 fn test_ethernet_packet<P: AsRef<Path>>(path: P) -> Result<u32, ParseEthernetError> {
     // Open a pcap capture from a test file
@@ -28,7 +28,7 @@ fn test_ethernet_parsing() -> Result<(), ParseEthernetError> {
         if path.extension().and_then(|s| s.to_str()) == Some("pcap") {
             println!("Testing file: {}", path.display());
             let cnt = test_ethernet_packet(&path)?;
-            println!("Parsed {} Ethernet packets", cnt);
+            println!("Parsed {cnt} Ethernet packets");
         }
     }
 

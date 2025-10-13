@@ -19,7 +19,7 @@ pub fn describe_device(device: &Device) -> Vec<String> {
         addresses,
         flags: _,
     } = device;
-    let mut result = vec![format!("Name: {}", name)];
+    let mut result = vec![format!("Name: {name}")];
     if let Some(desc) = desc {
         result.push(format!("Description: {desc}"));
     }

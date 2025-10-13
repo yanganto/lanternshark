@@ -4,8 +4,7 @@ use pcap::{Capture as Capturing, Device};
 use termshark::{
     app::run,
     cli::{Cli, SubCommands},
-    describe_device,
-    find_device,
+    describe_device, find_device,
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

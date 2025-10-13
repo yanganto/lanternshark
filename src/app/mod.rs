@@ -6,11 +6,11 @@ mod packet_info;
 mod state;
 mod ui;
 
+use super::ethernet::EthernetPacket;
 use events::handle_events;
 use packet_info::PacketInfo;
 use pcap::{Activated, Capture as Capturing};
 use state::App;
-use super::ethernet::EthernetPacket;
 use std::{io, path::Path, thread, time::Duration};
 
 /// Main application logic.
@@ -18,7 +18,10 @@ use std::{io, path::Path, thread, time::Duration};
 /// # Errors
 ///
 /// Returns an error if the TUI fails to initialize or render.
-pub fn run<T: Activated, P: AsRef<Path>>(mut capture: Capturing<T>, save_file: Option<P>) -> Result<(), io::Error> {
+pub fn run<T: Activated, P: AsRef<Path>>(
+    mut capture: Capturing<T>,
+    save_file: Option<P>,
+) -> Result<(), io::Error> {
     // Initialize save file if needed
     let mut save_file = if let Some(file) = save_file {
         let file_path = file.as_ref();

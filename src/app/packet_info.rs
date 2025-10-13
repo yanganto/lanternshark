@@ -132,8 +132,7 @@ impl PacketInfo {
         }
 
         // Return the last valid addresses found, or fallback to Ethernet MAC addresses
-        last_valid_addresses.unwrap_or_else(|| {
-            (packet.source.to_string(), packet.destination.to_string())
-        })
+        last_valid_addresses
+            .unwrap_or_else(|| (packet.source.to_string(), packet.destination.to_string()))
     }
 }

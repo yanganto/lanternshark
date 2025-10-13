@@ -8,8 +8,8 @@ mod packet_detail;
 use arp::{ArpPacket, ParseArpError};
 use ipv4::{Ipv4Packet, ParseIpv4Error};
 use ipv6::{Ipv6Packet, ParseIpv6Error};
-use pcap::Packet;
 pub use packet_detail::PacketDetail;
+use pcap::Packet;
 
 use chrono::DateTime;
 use std::fmt;
@@ -35,9 +35,9 @@ pub struct EthernetPacket<'a> {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MacAddress(pub [u8; 6]);
 
-/// Trait requiring associated const ETHER_TYPE for packet types.
+/// Trait requiring associated const `ETHER_TYPE` for packet types.
 pub trait EtherType {
-    /// The EtherType value associated with the packet type.
+    /// The `EtherType` value associated with the packet type.
     const ETHER_TYPE: u16;
 }
 
@@ -89,7 +89,7 @@ impl<'a> EthernetPacket<'a> {
     ///
     /// See [`ParseEthernetError`].
     pub fn new(header: &pcap::PacketHeader, raw: &'a [u8]) -> Result<Self, ParseEthernetError> {
-        let seconds = header.ts.tv_sec as i64; // `as i64` is required, since on Windows `tv_sec` is `c_long` which is `i32`
+        let seconds = header.ts.tv_sec; // `as i64` is required, since on Windows `tv_sec` is `c_long` which is `i32`
         let nanos = header.ts.tv_usec * 1000;
         let nanos = nanos
             .try_into()
@@ -189,10 +189,7 @@ impl fmt::Display for MacAddress {
 
 impl PacketDetail for EthernetPacket<'_> {
     fn summary(&self) -> String {
-        format!(
-            "Src: {}, Dst: {}",
-            self.source, self.destination
-        )
+        format!("Src: {}, Dst: {}", self.source, self.destination)
     }
 
     fn details(&self) -> Vec<String> {

@@ -1,9 +1,9 @@
 //! IGMP packet parsing.
 // https://en.wikipedia.org/w/index.php?title=Internet_Group_Management_Protocol&oldid=109330277#IGMP_version_2.
 
+use super::{PacketDetail, ParseIpv4Error, Protocol};
 use num_enum::{FromPrimitive, IntoPrimitive};
 use std::{fmt, net::Ipv4Addr};
-use super::{Protocol, ParseIpv4Error, PacketDetail};
 
 /// An IGMP packet. (Version 2)
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -59,7 +59,6 @@ impl<'a> IgmpPacket<'a> {
     /// # Errors
     ///
     /// See [`ParseIgmpError`].
-    #[must_use]
     pub fn new(raw: &'a [u8]) -> Result<Self, ParseIgmpError> {
         if raw.len() < 8 {
             // An IGMP packet should be at least 8 bytes long.
@@ -88,10 +87,7 @@ impl Protocol for IgmpPacket<'_> {
 
 impl fmt::Display for IgmpPacket<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let Self {
-            data,
-            ..
-        } = self;
+        let Self { data, .. } = self;
         write!(f, "IGMP: {} bytes", data.len())
     }
 }
@@ -118,7 +114,7 @@ impl PacketDetail for IgmpPacket<'_> {
         let group_info = if *group_address == Ipv4Addr::UNSPECIFIED {
             "general".to_string()
         } else {
-            format!("group {}", group_address)
+            format!("group {group_address}")
         };
         format!("{igmp_type}, {group_info}")
     }
@@ -127,7 +123,10 @@ impl PacketDetail for IgmpPacket<'_> {
         let type_num: u8 = self.igmp_type.into();
         vec![
             format!("Type: {} ({type_num})", self.igmp_type),
-            format!("Max Response Time: {} (1/10 second units)", self.max_response_time),
+            format!(
+                "Max Response Time: {} (1/10 second units)",
+                self.max_response_time
+            ),
             format!("Checksum: 0x{:04x}", self.checksum),
             format!("Group Address: {}", self.group_address),
             format!("Data Length: {} bytes", self.data.len()),

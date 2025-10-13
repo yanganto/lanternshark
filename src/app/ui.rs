@@ -1,13 +1,15 @@
 //! UI rendering components.
 
-use super::packet_info::PacketInfo;
-use super::state::App;
+use super::{packet_info::PacketInfo, state::App};
 use ratatui::{
+    Frame,
     layout::{Constraint, Direction, Layout, Margin, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span, Text},
-    widgets::{Block, Borders, Paragraph, Row, Scrollbar, ScrollbarOrientation, ScrollbarState, Table, Wrap},
-    Frame,
+    widgets::{
+        Block, Borders, Paragraph, Row, Scrollbar, ScrollbarOrientation, ScrollbarState, Table,
+        Wrap,
+    },
 };
 
 /// Render the main UI.
@@ -17,18 +19,18 @@ pub fn render(frame: &mut Frame, app: &mut App) {
 
     let constraints = if show_filter_bar {
         vec![
-            Constraint::Length(3),       // Filter input bar
+            Constraint::Length(3),      // Filter input bar
             Constraint::Percentage(37), // Packet list (reduced)
             Constraint::Percentage(30), // Packet details
             Constraint::Percentage(28), // Hex dump
-            Constraint::Length(2),       // Help bar
+            Constraint::Length(2),      // Help bar
         ]
     } else {
         vec![
             Constraint::Percentage(40), // Packet list
             Constraint::Percentage(30), // Packet details
             Constraint::Percentage(28), // Hex dump
-            Constraint::Length(2),       // Help bar
+            Constraint::Length(2),      // Help bar
         ]
     };
 
@@ -63,7 +65,9 @@ fn render_filter_input(frame: &mut Frame, app: &App, area: Rect) {
         };
 
         let title = if let Some(ref error) = app.filter_error {
-            format!("Filter (Error: {}) - Press Enter to apply, Esc to cancel", error)
+            format!(
+                "Filter (Error: {error}) - Press Enter to apply, Esc to cancel",
+            )
         } else {
             "Filter - Press Enter to apply, Esc to cancel".to_string()
         };
@@ -85,7 +89,8 @@ fn render_filter_input(frame: &mut Frame, app: &App, area: Rect) {
         frame.set_cursor_position((cursor_x, cursor_y));
     } else {
         // Filter applied but not editing: show current filter
-        let filter_text = app.filter
+        let filter_text = app
+            .filter
             .as_ref()
             .map(|f| f.to_string())
             .unwrap_or_default();
@@ -107,8 +112,20 @@ fn render_filter_input(frame: &mut Frame, app: &App, area: Rect) {
 
 /// Render the packet list table.
 fn render_packet_list(frame: &mut Frame, app: &mut App, area: Rect) {
-    let header = Row::new(vec!["No.", "Time", "Source", "Destination", "Protocol", "Length", "Summary"])
-        .style(Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD));
+    let header = Row::new(vec![
+        "No.",
+        "Time",
+        "Source",
+        "Destination",
+        "Protocol",
+        "Length",
+        "Summary",
+    ])
+    .style(
+        Style::default()
+            .fg(Color::Yellow)
+            .add_modifier(Modifier::BOLD),
+    );
 
     let rows: Vec<Row> = app
         .filtered_packets()
@@ -178,12 +195,14 @@ fn render_packet_list(frame: &mut Frame, app: &mut App, area: Rect) {
         .end_symbol(Some("↓"))
         .style(Style::default().fg(Color::Cyan));
 
-    let mut scrollbar_state = ScrollbarState::new(app.filtered_count())
-        .position(app.selected);
+    let mut scrollbar_state = ScrollbarState::new(app.filtered_count()).position(app.selected);
 
     frame.render_stateful_widget(
         scrollbar,
-        area.inner(Margin { vertical: 1, horizontal: 0 }),
+        area.inner(Margin {
+            vertical: 1,
+            horizontal: 0,
+        }),
         &mut scrollbar_state,
     );
 }
@@ -217,12 +236,16 @@ fn render_packet_details(frame: &mut Frame, app: &App, area: Rect) {
             .end_symbol(Some("↓"))
             .style(Style::default().fg(Color::Cyan));
 
-        let mut scrollbar_state = ScrollbarState::new(total_lines.saturating_sub(area.height.saturating_sub(2) as usize))
-            .position(app.details_scroll as usize);
+        let mut scrollbar_state =
+            ScrollbarState::new(total_lines.saturating_sub(area.height.saturating_sub(2) as usize))
+                .position(app.details_scroll as usize);
 
         frame.render_stateful_widget(
             scrollbar,
-            area.inner(Margin { vertical: 1, horizontal: 0 }),
+            area.inner(Margin {
+                vertical: 1,
+                horizontal: 0,
+            }),
             &mut scrollbar_state,
         );
     }
@@ -235,7 +258,10 @@ fn format_packet_details(packet: &PacketInfo) -> Text<'static> {
     // Display all protocol layers collected via the linked-list traversal
     for layer in &packet.layers {
         lines.push(Line::from(vec![
-            Span::styled(format!("▼ {}", layer.name), Style::default().fg(Color::Green)),
+            Span::styled(
+                format!("▼ {}", layer.name),
+                Style::default().fg(Color::Green),
+            ),
             Span::raw(format!(", {}", layer.summary)),
         ]));
 
@@ -278,12 +304,16 @@ fn render_hex_dump(frame: &mut Frame, app: &App, area: Rect) {
             .end_symbol(Some("↓"))
             .style(Style::default().fg(Color::Cyan));
 
-        let mut scrollbar_state = ScrollbarState::new(total_lines.saturating_sub(area.height.saturating_sub(2) as usize))
-            .position(app.hex_scroll as usize);
+        let mut scrollbar_state =
+            ScrollbarState::new(total_lines.saturating_sub(area.height.saturating_sub(2) as usize))
+                .position(app.hex_scroll as usize);
 
         frame.render_stateful_widget(
             scrollbar,
-            area.inner(Margin { vertical: 1, horizontal: 0 }),
+            area.inner(Margin {
+                vertical: 1,
+                horizontal: 0,
+            }),
             &mut scrollbar_state,
         );
     }
@@ -334,10 +364,7 @@ fn format_hex_dump(data: &[u8]) -> Text<'static> {
             };
             ascii_part.push(ch);
         }
-        line_parts.push(Span::styled(
-            ascii_part,
-            Style::default().fg(Color::Cyan),
-        ));
+        line_parts.push(Span::styled(ascii_part, Style::default().fg(Color::Cyan)));
 
         lines.push(Line::from(line_parts));
     }
@@ -350,18 +377,37 @@ fn render_help(frame: &mut Frame, area: Rect) {
     const APP_NAME: &'static str = env!("CARGO_PKG_NAME");
     const VERSION: &'static str = env!("CARGO_PKG_VERSION");
     let help_text = Line::from(vec![
-        Span::styled(format!("{APP_NAME}@{VERSION}"), Style::default().fg(Color::Cyan)),
+        Span::styled(
+            format!("{APP_NAME}@{VERSION}"),
+            Style::default().fg(Color::Cyan),
+        ),
         Span::styled(" | ", Style::default().fg(Color::DarkGray)),
-        Span::styled("Enter", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            "Enter",
+            Style::default()
+                .fg(Color::Green)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::styled(" filter ", Style::default().fg(Color::DarkGray)),
-        Span::styled("Esc", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            "Esc",
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::styled(" clear ", Style::default().fg(Color::DarkGray)),
-        Span::styled("q", Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            "q",
+            Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
+        ),
         Span::styled(" quit", Style::default().fg(Color::DarkGray)),
     ]);
 
-    let paragraph = Paragraph::new(help_text)
-        .block(Block::default().borders(Borders::TOP).border_style(Style::default().fg(Color::DarkGray)));
+    let paragraph = Paragraph::new(help_text).block(
+        Block::default()
+            .borders(Borders::TOP)
+            .border_style(Style::default().fg(Color::DarkGray)),
+    );
 
     frame.render_widget(paragraph, area);
 }

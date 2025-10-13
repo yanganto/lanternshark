@@ -1,7 +1,6 @@
 //! Application state management.
 
-use super::filter::PacketFilter;
-use super::packet_info::PacketInfo;
+use super::{filter::PacketFilter, packet_info::PacketInfo};
 use ratatui::widgets::TableState;
 
 /// Main application state.
@@ -116,7 +115,8 @@ impl App {
     pub fn enter_filter_mode(&mut self) {
         self.filter_mode = true;
         // Initialize input with current filter if any
-        self.filter_input = self.filter
+        self.filter_input = self
+            .filter
             .as_ref()
             .map(|f| f.to_string())
             .unwrap_or_default();

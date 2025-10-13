@@ -119,7 +119,7 @@ impl<'a> ArpPacket<'a> {
     }
 }
 
-impl<'a> EtherType for ArpPacket<'a> {
+impl EtherType for ArpPacket<'_> {
     const ETHER_TYPE: u16 = 0x0806;
 }
 
