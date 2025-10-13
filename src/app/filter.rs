@@ -77,7 +77,7 @@ impl PacketFilter {
                     }
                     _ => {
                         return Err(format!(
-                            "Unknown filter key: '{key}'. Supported: protocol, source, destination, length",
+                            "Unknown filter key: '{key}'",
                         ));
                     }
                 }
@@ -138,7 +138,8 @@ impl PacketFilter {
 
             // Also search in raw packet data (case-insensitive byte search)
             let term_bytes = term.as_bytes();
-            let found_in_raw = packet.raw
+            let found_in_raw = packet
+                .raw
                 .windows(term_bytes.len())
                 .any(|window| window.eq_ignore_ascii_case(term_bytes));
 
@@ -226,7 +227,7 @@ impl fmt::Display for PacketFilter {
         if let Some(min) = self.min_length {
             if let Some(max) = self.max_length {
                 if min == max {
-                    parts.push(format!("length:{min}", ));
+                    parts.push(format!("length:{min}"));
                 } else {
                     parts.push(format!("length:{min}-{max}"));
                 }

@@ -65,9 +65,7 @@ fn render_filter_input(frame: &mut Frame, app: &App, area: Rect) {
         };
 
         let title = if let Some(ref error) = app.filter_error {
-            format!(
-                "Filter (Error: {error}) - Press Enter to apply, Esc to cancel",
-            )
+            format!("Filter (Error: {error}) - Press Enter to apply, Esc to cancel")
         } else {
             "Filter - Press Enter to apply, Esc to cancel".to_string()
         };
