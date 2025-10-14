@@ -1,7 +1,10 @@
 //! TCP packet parsing.
 // https://www.wikiwand.com/en/articles/Transmission_Control_Protocol
 
+pub mod http;
+
 use super::{PacketDetail, ParseIpv4Error, Protocol};
+use http::{HttpPacket, ParseHttpError};
 use std::fmt;
 
 /// A TCP packet.
@@ -28,10 +31,28 @@ pub struct TcpPacket<'a> {
     pub urgent_pointer: u16,
     /// Options. Length varies from 0 to 40 bytes.
     pub options: &'a [u8],
+    /// The inner packet.
+    pub inner: TcpPacketInner<'a>,
     /// The raw data field or leftover data of the TCP packet.
     pub data: &'a [u8],
     /// The raw TCP packet.
     pub raw: &'a [u8],
+}
+
+/// Available inner packet types for TCP packets.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TcpPacketInner<'a> {
+    /// HTTP packet.
+    Http(HttpPacket<'a>),
+    /// Unknown or unsupported inner packet type.
+    Unknown(UnknownTcpPacket<'a>),
+}
+
+/// A TCP packet of unknown or unsupported protocol.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct UnknownTcpPacket<'a> {
+    /// The raw data field or leftover data of the TCP packet.
+    pub data: &'a [u8],
 }
 
 /// Flags in a TCP packet.
@@ -63,6 +84,8 @@ pub enum ParseTcpError {
     PacketTooShort,
     /// The data offset is invalid (less than 5 or greater than 15).
     InvalidDataOffset,
+    /// Error parsing inner HTTP packet.
+    ParseHttpError(ParseHttpError),
 }
 
 impl From<ParseTcpError> for ParseIpv4Error {
@@ -101,6 +124,23 @@ impl<'a> TcpPacket<'a> {
             return Err(ParseTcpError::PacketTooShort);
         }
         let (options, data) = options_and_data.split_at(header_length_bytes - 20);
+
+        // Check the first line of data to see if it's an HTTP packet.
+        let first_line_end = data.iter().position(|&b| b == b'\n').unwrap_or(0);
+        let first_line = &data[..first_line_end];
+        // Split by spaces and get the last part.
+        let last_word = first_line.split(|&b| b == b' ').next_back().unwrap_or(&[]);
+        // Check if it starts with "HTTP/".
+        // FIXME: HTTP response?
+        let inner = if last_word.starts_with(b"HTTP/") {
+            match HttpPacket::new(data) {
+                Ok(http) => TcpPacketInner::Http(http),
+                Err(e) => return Err(ParseTcpError::ParseHttpError(e)),
+            }
+        } else {
+            TcpPacketInner::Unknown(UnknownTcpPacket { data })
+        };
+
         Ok(Self {
             src_port,
             dest_port,
@@ -112,6 +152,7 @@ impl<'a> TcpPacket<'a> {
             checksum,
             urgent_pointer,
             options,
+            inner,
             data,
             raw,
         })
@@ -192,6 +233,13 @@ impl PacketDetail for TcpPacket<'_> {
 
     fn length(&self) -> usize {
         self.raw.len()
+    }
+
+    fn inner(&self) -> Option<&dyn PacketDetail> {
+        match &self.inner {
+            TcpPacketInner::Http(http) => Some(http),
+            TcpPacketInner::Unknown(_) => None,
+        }
     }
 }
 

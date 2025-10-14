@@ -10,11 +10,11 @@
 - [HTTP](https://www.wikiwand.com/en/articles/HTTP#HTTP/1.1_request_messages)
 - Upper-case hex
 - Scroll each panel with wheel / Tabbing through sections and use the same hotkeys
+- Stacking details panel and hex dump panel horizontally when wide enough
 
 ## Not Planned (for now?)
 
 - Ellipsis when there's no space for text (Could be solved by [ratatui#1913](https://github.com/ratatui/ratatui/issues/1913))
-- Stacking details panel and hex dump panel horizontally when wide enough
 - Implement all registered protocols
 - Tabbing through sections and use the same hotkeys
 - Collapsible details (remembers state for individual protocol across packets)
