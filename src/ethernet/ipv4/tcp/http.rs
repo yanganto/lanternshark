@@ -95,31 +95,25 @@ impl<'a> HttpPacket<'a> {
         let mut lines = header_text.lines();
 
         // Parse the first line (status line or request line)
-        let first_line = lines.next().ok_or(ParseHttpError::InvalidRequestLine)?;
+        let first_line = lines.next().ok_or(ParseHttpError::InvalidRequestLine)?.trim();
 
         // Determine if this is a request or response
-        let mut parts = first_line.split_whitespace();
         let packet = if first_line.starts_with("HTTP/") {
             // Response: "HTTP/1.1 200 OK"
-            let version_part = parts.next().ok_or(ParseHttpError::InvalidRequestLine)?;
+            let first_whitespace = first_line.find(char::is_whitespace).ok_or(ParseHttpError::InvalidRequestLine)?;
+            let version_part = &first_line[..first_whitespace];
             let version = version_part
                 .strip_prefix("HTTP/")
                 .ok_or(ParseHttpError::InvalidRequestLine)?;
-            let status_code = parts
-                .next()
-                .and_then(|s| s.parse().ok())
-                .ok_or(ParseHttpError::InvalidRequestLine)?;
 
-            // Find the reason phrase in the original line (after "HTTP/X.X NNN ")
-            let status_str_start = first_line.find(char::is_whitespace)
-                .and_then(|pos| first_line[pos..].find(|c: char| !c.is_whitespace()).map(|p| pos + p))
-                .unwrap_or(first_line.len());
-            let reason_start = first_line[status_str_start..]
-                .find(char::is_whitespace)
-                .map(|pos| status_str_start + pos)
-                .and_then(|pos| first_line[pos..].find(|c: char| !c.is_whitespace()).map(|p| pos + p))
-                .unwrap_or(first_line.len());
-            let reason_phrase = &first_line[reason_start..];
+            let rest = &first_line[first_whitespace..].trim_start();
+            let second_whitespace = rest.find(char::is_whitespace).ok_or(ParseHttpError::InvalidRequestLine)?;
+            let status_code_str = &rest[..second_whitespace];
+            let status_code = status_code_str
+                .parse()
+                .map_err(|_| ParseHttpError::InvalidRequestLine)?;
+
+            let reason_phrase = rest[second_whitespace..].trim_start();
 
             // Parse headers
             let headers = Self::parse_headers(&mut lines);
@@ -134,6 +128,7 @@ impl<'a> HttpPacket<'a> {
             })
         } else {
             // Request: "GET /path HTTP/1.1"
+            let mut parts = first_line.split_whitespace();
             let method = parts.next().ok_or(ParseHttpError::InvalidRequestLine)?;
             let path = parts.next().ok_or(ParseHttpError::InvalidRequestLine)?;
             let version_part = parts.next().ok_or(ParseHttpError::InvalidRequestLine)?;
@@ -344,5 +339,38 @@ mod tests {
             }
             HttpPacket::Request(_) => panic!("Expected response, got request"),
         }
+    }
+
+    #[test]
+    fn test_parse_http_response_with_lots_of_spaces() {
+        let data = b"HTTP/1.1    200    OK\r\nContent-Type: text/html\r\n\r\nHello!";
+        let packet = HttpPacket::new(data).unwrap();
+
+        match packet {
+            HttpPacket::Response(resp) => {
+                assert_eq!(resp.version, "1.1");
+                assert_eq!(resp.status_code, 200);
+                assert_eq!(resp.reason_phrase, "OK");
+                assert_eq!(resp.data, b"Hello!");
+            }
+            HttpPacket::Request(_) => panic!("Expected response, got request"),
+        }
+    }
+
+    #[test]
+    fn test_parse_invalid_http() {
+        // Invalid request line
+        let data = b"INVALID REQUEST LINE\r\nHost: example.com\r\n\r\n";
+        assert_eq!(
+            HttpPacket::new(data).unwrap_err(),
+            ParseHttpError::InvalidRequestLine
+        );
+
+        // Invalid UTF-8 in the header
+        let data = b"GET /index.html?\xFF HTTP/1.1\r\nHost: example.com\r\n\r\n";
+        assert_eq!(
+            HttpPacket::new(data).unwrap_err(),
+            ParseHttpError::InvalidUtf8
+        );
     }
 }
