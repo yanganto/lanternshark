@@ -38,10 +38,12 @@ TermShark 是一个在终端中使用的“迷你版 WireShark”，基于 Rust 
 
 - `EthernetPacket`
     - `Ipv4Packet`
-        - `ICMPPacket`
-        - `IGMPPacket`
-        - `TCPPacket`
-        - `UDPPacket`
+        - `IcmpPacket`
+        - `IgmpPacket`
+        - `TcpPacket`
+            - `HttpPacket`
+            - `UnknownTcpPacket`
+        - `UdpPacket`
             - `DNSPacket` (DNS + mDNS)
             - `UnknownUdpPacket`
         - `UnknownIpv4Packet`
