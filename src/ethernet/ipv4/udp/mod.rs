@@ -72,10 +72,15 @@ impl<'a> UdpPacket<'a> {
         let length = u16::from_be_bytes([header[4], header[5]]);
         let checksum = u16::from_be_bytes([header[6], header[7]]);
         let inner = if src_port == 53 || dest_port == 53 {
-            match DnsPacket::new(data) {
-                Ok(dns) => UdpPacketInner::Dns(dns),
-                Err(e) => return Err(ParseUdpError::ParseDnsError(e)),
-            }
+            // Regular DNS
+            DnsPacket::new(data, false)
+                .map(UdpPacketInner::Dns)
+                .map_err(ParseUdpError::ParseDnsError)?
+        } else if src_port == 5353 || dest_port == 5353 {
+            // mDNS
+            DnsPacket::new(data, true)
+                .map(UdpPacketInner::Dns)
+                .map_err(ParseUdpError::ParseDnsError)?
         } else {
             UdpPacketInner::Unknown(UnknownUdpPacket { data })
         };

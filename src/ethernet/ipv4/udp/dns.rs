@@ -1,4 +1,4 @@
-//! DNS packet parsing.
+//! DNS and mDNS packet parsing.
 
 use super::{PacketDetail, ParseUdpError};
 use std::fmt;
@@ -7,6 +7,8 @@ use num_enum::{FromPrimitive, IntoPrimitive};
 /// A DNS packet.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DnsPacket<'a> {
+    /// Whether this is a mDNS packet.
+    pub is_mdns: bool,
     /// Transaction ID.
     pub transaction_id: u16,
     /// Flags.
@@ -100,7 +102,7 @@ impl<'a> DnsPacket<'a> {
     /// # Errors
     ///
     /// See [`ParseDnsError`].
-    pub fn new(raw: &'a [u8]) -> Result<Self, ParseDnsError> {
+    pub fn new(raw: &'a [u8], is_mdns: bool) -> Result<Self, ParseDnsError> {
         if raw.len() < 12 {
             return Err(ParseDnsError::PacketTooShort);
         }
@@ -112,6 +114,7 @@ impl<'a> DnsPacket<'a> {
         let authority_count = u16::from_be_bytes([header[8], header[9]]);
         let additional_count = u16::from_be_bytes([header[10], header[11]]);
         Ok(Self {
+            is_mdns,
             transaction_id,
             flags,
             question_count,
@@ -134,9 +137,10 @@ impl fmt::Display for DnsPacket<'_> {
             additional_count,
             ..
         } = self;
+        let protocol = if self.is_mdns { "mDNS" } else { "DNS" };
         write!(
             f,
-            "DNS: {flags} Q:{question_count} A:{answer_count} NS:{authority_count} AR:{additional_count}"
+            "{protocol}: {flags} Q:{question_count} A:{answer_count} NS:{authority_count} AR:{additional_count}"
         )
     }
 }
@@ -176,11 +180,11 @@ impl PacketDetail for DnsPacket<'_> {
     }
 
     fn slug(&self) -> &'static str {
-        "DNS"
+        if self.is_mdns { "mDNS" } else { "DNS" }
     }
 
     fn name(&self) -> &'static str {
-        "Domain Name System"
+        if self.is_mdns { "Multicast DNS" } else { "Domain Name System" }
     }
 
     fn length(&self) -> usize {
