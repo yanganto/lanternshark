@@ -27,6 +27,11 @@ fn handle_key_event(app: &mut App, key: KeyEvent) {
         return;
     }
 
+    // Do not handle KeyEventKind::Release
+    if matches!(key.kind, event::KeyEventKind::Release) {
+        return;
+    }
+
     match key.code {
         // Quit
         KeyCode::Char('q') | KeyCode::Char('Q') => app.quit(),

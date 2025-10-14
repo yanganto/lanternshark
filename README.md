@@ -12,6 +12,13 @@ WireShark in the terminal. Note that this is a toy project, with a lot of featur
 
 ## 📥 Installation
 
+### Prerequisits
+
+- Linux: Install `libpcap-dev` on Debian, or `libpcap-devel` on Fedora.
+- Windows: Install [Npcap](https://npcap.com/#download).
+    - If you got an error that looks like "wpcap.dll not found", try to add `C:\Windows\System32\Npcap` to your PATH and restart your shell.
+- MacOSX: `libpcap` should already be installed.
+
 ### Using [`binstall`](https://github.com/cargo-bins/cargo-binstall)
 
 ```shell
@@ -24,7 +31,7 @@ Navigate to the [Releases page](https://github.com/PRO-2684/termshark/releases) 
 
 ### Compiling from Source
 
-Refer to [`pcap` docs](https://github.com/rust-pcap/pcap?tab=readme-ov-file#installing-dependencies) for requirements on dependencies.
+You'll also need [Npcap SDK](https://npcap.com/#download) on Windows.
 
 ```shell
 git clone https://github.com/PRO-2684/termshark.git
