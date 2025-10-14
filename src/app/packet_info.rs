@@ -8,11 +8,7 @@ use chrono::DateTime;
 pub struct ProtocolLayer {
     /// Human-readable protocol name (e.g., "Internet Control Message Protocol")
     pub name: String,
-    /// Protocol slug for the packet list (e.g., "ICMP")
-    #[allow(dead_code)]
-    pub slug: String,
     /// One-line summary of this layer
-    #[allow(dead_code)]
     pub summary: String,
     /// Detailed field information
     pub details: Vec<String>,
@@ -23,7 +19,6 @@ impl ProtocolLayer {
     pub fn from_packet_detail(packet: &dyn PacketDetail) -> Self {
         Self {
             name: packet.name().to_string(),
-            slug: packet.slug().to_string(),
             summary: packet.summary(),
             details: packet.details(),
         }

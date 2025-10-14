@@ -1,8 +1,8 @@
 //! DNS and mDNS packet parsing.
 
 use super::{PacketDetail, ParseUdpError};
-use std::fmt;
 use num_enum::{FromPrimitive, IntoPrimitive};
+use std::fmt;
 
 /// A DNS packet.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -28,6 +28,7 @@ pub struct DnsPacket<'a> {
 }
 
 /// Flags in a DNS packet.
+#[allow(clippy::struct_excessive_bools, reason = "I'm not a state machine")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DnsPacketFlags {
     /// Is this a query (false) or a response (true)?
@@ -51,7 +52,7 @@ pub struct DnsPacketFlags {
     pub response_code: DnsResponseCode,
 }
 
-/// Operation codes in a DNS packet. See https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-5.
+/// Operation codes in a DNS packet. See <https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-5>.
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
 pub enum DnsOperationCode {
@@ -66,7 +67,7 @@ pub enum DnsOperationCode {
     Unknown(u8),
 }
 
-/// Responses codes in a DNS packet. See https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-6.
+/// Responses codes in a DNS packet. See <https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-6>.
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
 pub enum DnsResponseCode {
@@ -155,14 +156,23 @@ impl PacketDetail for DnsPacket<'_> {
             additional_count,
             ..
         } = self;
-        format!("{flags} Q:{question_count} A:{answer_count} NS:{authority_count} AR:{additional_count}")
+        format!(
+            "{flags} Q:{question_count} A:{answer_count} NS:{authority_count} AR:{additional_count}"
+        )
     }
 
     fn details(&self) -> Vec<String> {
         vec![
             format!("Transaction ID: 0x{:04x}", self.transaction_id),
             format!("Flags: {}", self.flags),
-            format!("  QR: {}", if self.flags.is_response { "Response" } else { "Query" }),
+            format!(
+                "  QR: {}",
+                if self.flags.is_response {
+                    "Response"
+                } else {
+                    "Query"
+                }
+            ),
             format!("  OPCODE: {}", self.flags.opcode),
             format!("  AA: {}", self.flags.authoritative),
             format!("  TC: {}", self.flags.truncated),
@@ -184,7 +194,11 @@ impl PacketDetail for DnsPacket<'_> {
     }
 
     fn name(&self) -> &'static str {
-        if self.is_mdns { "Multicast DNS" } else { "Domain Name System" }
+        if self.is_mdns {
+            "Multicast DNS"
+        } else {
+            "Domain Name System"
+        }
     }
 
     fn length(&self) -> usize {
@@ -195,10 +209,10 @@ impl PacketDetail for DnsPacket<'_> {
 impl fmt::Display for DnsOperationCode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            DnsOperationCode::Query => write!(f, "QUERY"),
-            DnsOperationCode::InverseQuery => write!(f, "IQUERY"),
-            DnsOperationCode::Status => write!(f, "STATUS"),
-            DnsOperationCode::Unknown(code) => write!(f, "Unknown (0x{code:02x})"),
+            Self::Query => write!(f, "QUERY"),
+            Self::InverseQuery => write!(f, "IQUERY"),
+            Self::Status => write!(f, "STATUS"),
+            Self::Unknown(code) => write!(f, "Unknown (0x{code:02x})"),
         }
     }
 }
@@ -252,7 +266,13 @@ impl fmt::Display for DnsPacketFlags {
         if self.checking_disabled {
             flags.push("CD");
         }
-        write!(f, "OPCODE={} RCODE={} [{}]", self.opcode, self.response_code, flags.join(", "))
+        write!(
+            f,
+            "OPCODE={} RCODE={} [{}]",
+            self.opcode,
+            self.response_code,
+            flags.join(", ")
+        )
     }
 }
 
