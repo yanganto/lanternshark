@@ -3,7 +3,7 @@
 // https://www.iana.org/assignments/arp-parameters/arp-parameters.xhtml
 
 use super::{EtherType, MacAddress, packet_detail::PacketDetail};
-use num_enum::FromPrimitive;
+use num_enum::{FromPrimitive, IntoPrimitive};
 use std::{fmt, net::Ipv4Addr};
 
 /// An ARP packet.
@@ -33,7 +33,7 @@ pub struct ArpPacket<'a> {
 
 /// Available hardware types.
 #[repr(u16)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
 pub enum HardwareType {
     /// Reserved.
     Reserved = 0,

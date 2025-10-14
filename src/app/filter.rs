@@ -76,9 +76,7 @@ impl PacketFilter {
                         Self::parse_length_filter(value, &mut filter)?;
                     }
                     _ => {
-                        return Err(format!(
-                            "Unknown filter key: '{key}'",
-                        ));
+                        return Err(format!("Unknown filter key: '{key}'"));
                     }
                 }
             } else {

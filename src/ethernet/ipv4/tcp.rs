@@ -133,7 +133,7 @@ impl fmt::Display for TcpPacket<'_> {
         } = self;
         write!(
             f,
-            "TCP: [{flags}] {} bytes from :{src_port} to :{dest_port}",
+            "TCP: {flags} {} bytes from :{src_port} to :{dest_port}",
             data.len()
         )
     }
@@ -149,7 +149,7 @@ impl PacketDetail for TcpPacket<'_> {
             ..
         } = self;
         format!(
-            "[{flags}] {} bytes from :{src_port} to :{dest_port}",
+            "{flags} {} bytes from :{src_port} to :{dest_port}",
             data.len()
         )
     }
@@ -237,6 +237,6 @@ impl fmt::Display for TcpPacketFlags {
         if self.fin {
             flags.push("FIN");
         }
-        write!(f, "{}", flags.join(", "))
+        write!(f, "[{}]", flags.join(", "))
     }
 }
