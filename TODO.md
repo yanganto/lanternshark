@@ -7,7 +7,7 @@
     - `apple`: Sniff MDNS packets for info of apple devices
     - `ftp`: Sniff ftp login attemps
     - `http`: Sniff http form posts
-- [HTTP](https://www.wikiwand.com/en/articles/HTTP#HTTP/1.1_request_messages), [MDNS](https://www.wikiwand.com/en/articles/Multicast_DNS#Packet_structure)?
+- [HTTP](https://www.wikiwand.com/en/articles/HTTP#HTTP/1.1_request_messages)
 - Upper-case hex
 - Scroll each panel with wheel / Tabbing through sections and use the same hotkeys
 

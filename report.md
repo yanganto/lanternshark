@@ -32,7 +32,7 @@ TermShark 是一个在终端中使用的“迷你版 WireShark”，基于 Rust 
     - `packet_info.rs`：展示层数据模型
 - 以太网解析层 (`src/ethernet`)
     - 统一的协议描述 API：`PacketDetail` trait
-    - 具体协议：`EthernetPacket` → `Ipv4Packet`/`Ipv6Packet`/`ArpPacket` → `ICMPPacket`/`IGMPPacket`/`TCPPacket`/`UDPPacket`
+    - 具体协议：`EthernetPacket` → `Ipv4Packet`/`Ipv6Packet`/`ArpPacket` → `ICMPPacket`/`IGMPPacket`/`TCPPacket`/`UDPPacket` → 应用层协议
 
 ### 协议层级
 
@@ -42,6 +42,8 @@ TermShark 是一个在终端中使用的“迷你版 WireShark”，基于 Rust 
         - `IGMPPacket`
         - `TCPPacket`
         - `UDPPacket`
+            - `DNSPacket` (DNS + mDNS)
+            - `UnknownUdpPacket`
         - `UnknownIpv4Packet`
     - `ArpPacket`
     - `Ipv6Packet`
@@ -74,6 +76,7 @@ TermShark 是一个在终端中使用的“迷你版 WireShark”，基于 Rust 
 8. IGMP 包解析 (`3127026`)
 9. 包过滤功能 (`02fa902`)
 10. 细节改进
+11. DNS, mDNS 包解析 (`2e88e62`, `49c7747`)
 
 难点与解决：
 
