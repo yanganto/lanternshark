@@ -95,19 +95,26 @@ impl<'a> HttpPacket<'a> {
         let mut lines = header_text.lines();
 
         // Parse the first line (status line or request line)
-        let first_line = lines.next().ok_or(ParseHttpError::InvalidRequestLine)?.trim();
+        let first_line = lines
+            .next()
+            .ok_or(ParseHttpError::InvalidRequestLine)?
+            .trim();
 
         // Determine if this is a request or response
         let packet = if first_line.starts_with("HTTP/") {
             // Response: "HTTP/1.1 200 OK"
-            let first_whitespace = first_line.find(char::is_whitespace).ok_or(ParseHttpError::InvalidRequestLine)?;
+            let first_whitespace = first_line
+                .find(char::is_whitespace)
+                .ok_or(ParseHttpError::InvalidRequestLine)?;
             let version_part = &first_line[..first_whitespace];
             let version = version_part
                 .strip_prefix("HTTP/")
                 .ok_or(ParseHttpError::InvalidRequestLine)?;
 
             let rest = &first_line[first_whitespace..].trim_start();
-            let second_whitespace = rest.find(char::is_whitespace).ok_or(ParseHttpError::InvalidRequestLine)?;
+            let second_whitespace = rest
+                .find(char::is_whitespace)
+                .ok_or(ParseHttpError::InvalidRequestLine)?;
             let status_code_str = &rest[..second_whitespace];
             let status_code = status_code_str
                 .parse()
@@ -153,9 +160,7 @@ impl<'a> HttpPacket<'a> {
     }
 
     /// Parse HTTP headers from lines.
-    fn parse_headers<'b>(
-        lines: &mut impl Iterator<Item = &'b str>,
-    ) -> Vec<(&'b str, &'b str)> {
+    fn parse_headers<'b>(lines: &mut impl Iterator<Item = &'b str>) -> Vec<(&'b str, &'b str)> {
         let mut headers = Vec::new();
         for line in lines {
             let line = line.trim();
@@ -311,7 +316,8 @@ mod tests {
 
     #[test]
     fn test_parse_http_request_with_post_body() {
-        let data = b"POST /api/data HTTP/1.1\r\nContent-Type: application/json\r\n\r\n{\"key\":\"value\"}";
+        let data =
+            b"POST /api/data HTTP/1.1\r\nContent-Type: application/json\r\n\r\n{\"key\":\"value\"}";
         let packet = HttpPacket::new(data).unwrap();
 
         match packet {
@@ -327,7 +333,8 @@ mod tests {
     #[test]
     fn test_parse_http_with_binary_body() {
         // Response with binary data (non-UTF8 in body)
-        let mut data = b"HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\n\r\n".to_vec();
+        let mut data =
+            b"HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\n\r\n".to_vec();
         data.extend_from_slice(&[0xFF, 0xFE, 0xFD, 0xFC]); // Binary data
 
         let packet = HttpPacket::new(&data).unwrap();

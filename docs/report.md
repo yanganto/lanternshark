@@ -77,6 +77,7 @@ TermShark 是一个在终端中使用的“迷你版 WireShark”，基于 Rust 
 9. 包过滤功能 (`02fa902`)
 10. 细节改进
 11. DNS, mDNS 包解析 (`2e88e62`, `49c7747`)
+12. HTTP 包解析 (`eff279f` - `ee0a81d`)
 
 难点与解决：
 
