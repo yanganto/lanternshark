@@ -87,7 +87,7 @@ protocol:tcp length:>1000  # Large TCP packets
 HTTP source:192.168.1.1    # Traffic containing "HTTP" from source
 ```
 
-See [`FILTER_SYNTAX.md`](./FILTER_SYNTAX.md) for detailed documentation.
+See [`FILTER_SYNTAX.md`](./docs/FILTER_SYNTAX.md) for detailed documentation.
 
 ## 💡 Demos & Samples
 

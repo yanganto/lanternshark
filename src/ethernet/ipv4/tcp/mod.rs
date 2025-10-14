@@ -128,11 +128,15 @@ impl<'a> TcpPacket<'a> {
         // Check the first line of data to see if it's an HTTP packet.
         let first_line_end = data.iter().position(|&b| b == b'\n').unwrap_or(0);
         let first_line = &data[..first_line_end];
-        // Split by spaces and get the last part.
+
+        // Check if this is HTTP:
+        // - Request: last word starts with "HTTP/" (e.g., "GET /path HTTP/1.1")
+        // - Response: first word starts with "HTTP/" (e.g., "HTTP/1.1 200 OK")
         let last_word = first_line.split(|&b| b == b' ').next_back().unwrap_or(&[]);
-        // Check if it starts with "HTTP/".
-        // FIXME: HTTP response?
-        let inner = if last_word.starts_with(b"HTTP/") {
+        let first_word = first_line.split(|&b| b == b' ').next().unwrap_or(&[]);
+        let is_http = last_word.starts_with(b"HTTP/") || first_word.starts_with(b"HTTP/");
+
+        let inner = if is_http {
             match HttpPacket::new(data) {
                 Ok(http) => TcpPacketInner::Http(http),
                 Err(e) => return Err(ParseTcpError::ParseHttpError(e)),

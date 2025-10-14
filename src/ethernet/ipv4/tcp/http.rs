@@ -1,13 +1,23 @@
 //! HTTP packet parsing.
 // https://www.wikiwand.com/en/articles/HTTP#HTTP/1.1_request_messages
+// https://www.wikiwand.com/en/articles/HTTP#HTTP/1.1_response_messages
 
 use super::{PacketDetail, ParseTcpError};
 use std::{fmt, io::Error as IoError, str::from_utf8};
 
-/// An HTTP packet.
+/// An HTTP packet (either request or response).
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct HttpPacket<'a> {
-    /// Request method.
+pub enum HttpPacket<'a> {
+    /// HTTP request message.
+    Request(HttpRequest<'a>),
+    /// HTTP response message.
+    Response(HttpResponse<'a>),
+}
+
+/// An HTTP request message.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HttpRequest<'a> {
+    /// Request method (GET, POST, etc.).
     pub method: &'a str,
     /// Request path.
     pub path: &'a str,
@@ -15,7 +25,24 @@ pub struct HttpPacket<'a> {
     pub version: &'a str,
     /// Headers as key-value pairs.
     pub headers: Vec<(&'a str, &'a str)>,
-    /// The raw data field or leftover data of the HTTP packet.
+    /// The message body data.
+    pub data: &'a [u8],
+    /// The raw HTTP packet.
+    pub raw: &'a [u8],
+}
+
+/// An HTTP response message.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HttpResponse<'a> {
+    /// HTTP version.
+    pub version: &'a str,
+    /// Status code (200, 404, etc.).
+    pub status_code: u16,
+    /// Reason phrase (OK, Not Found, etc.).
+    pub reason_phrase: &'a str,
+    /// Headers as key-value pairs.
+    pub headers: Vec<(&'a str, &'a str)>,
+    /// The message body data.
     pub data: &'a [u8],
     /// The raw HTTP packet.
     pub raw: &'a [u8],
@@ -67,17 +94,73 @@ impl<'a> HttpPacket<'a> {
         let header_text = from_utf8(header_bytes).map_err(|_| ParseHttpError::InvalidUtf8)?;
         let mut lines = header_text.lines();
 
-        // Parse request line
-        let request_line = lines.next().ok_or(ParseHttpError::InvalidRequestLine)?;
-        let mut parts = request_line.split_whitespace();
-        let method = parts.next().ok_or(ParseHttpError::InvalidRequestLine)?;
-        let path = parts.next().ok_or(ParseHttpError::InvalidRequestLine)?;
-        let version = parts.next().ok_or(ParseHttpError::InvalidRequestLine)?;
-        let version = version
-            .strip_prefix("HTTP/")
-            .ok_or(ParseHttpError::InvalidRequestLine)?;
+        // Parse the first line (status line or request line)
+        let first_line = lines.next().ok_or(ParseHttpError::InvalidRequestLine)?;
 
-        // Parse headers
+        // Determine if this is a request or response
+        let mut parts = first_line.split_whitespace();
+        let packet = if first_line.starts_with("HTTP/") {
+            // Response: "HTTP/1.1 200 OK"
+            let version_part = parts.next().ok_or(ParseHttpError::InvalidRequestLine)?;
+            let version = version_part
+                .strip_prefix("HTTP/")
+                .ok_or(ParseHttpError::InvalidRequestLine)?;
+            let status_code = parts
+                .next()
+                .and_then(|s| s.parse().ok())
+                .ok_or(ParseHttpError::InvalidRequestLine)?;
+
+            // Find the reason phrase in the original line (after "HTTP/X.X NNN ")
+            let status_str_start = first_line.find(char::is_whitespace)
+                .and_then(|pos| first_line[pos..].find(|c: char| !c.is_whitespace()).map(|p| pos + p))
+                .unwrap_or(first_line.len());
+            let reason_start = first_line[status_str_start..]
+                .find(char::is_whitespace)
+                .map(|pos| status_str_start + pos)
+                .and_then(|pos| first_line[pos..].find(|c: char| !c.is_whitespace()).map(|p| pos + p))
+                .unwrap_or(first_line.len());
+            let reason_phrase = &first_line[reason_start..];
+
+            // Parse headers
+            let headers = Self::parse_headers(&mut lines);
+
+            HttpPacket::Response(HttpResponse {
+                version,
+                status_code,
+                reason_phrase,
+                headers,
+                data,
+                raw,
+            })
+        } else {
+            // Request: "GET /path HTTP/1.1"
+            let method = parts.next().ok_or(ParseHttpError::InvalidRequestLine)?;
+            let path = parts.next().ok_or(ParseHttpError::InvalidRequestLine)?;
+            let version_part = parts.next().ok_or(ParseHttpError::InvalidRequestLine)?;
+            let version = version_part
+                .strip_prefix("HTTP/")
+                .ok_or(ParseHttpError::InvalidRequestLine)?;
+
+            // Parse headers
+            let headers = Self::parse_headers(&mut lines);
+
+            HttpPacket::Request(HttpRequest {
+                method,
+                path,
+                version,
+                headers,
+                data,
+                raw,
+            })
+        };
+
+        Ok(packet)
+    }
+
+    /// Parse HTTP headers from lines.
+    fn parse_headers<'b>(
+        lines: &mut impl Iterator<Item = &'b str>,
+    ) -> Vec<(&'b str, &'b str)> {
         let mut headers = Vec::new();
         for line in lines {
             let line = line.trim();
@@ -88,51 +171,74 @@ impl<'a> HttpPacket<'a> {
                 headers.push((key.trim(), value.trim()));
             }
         }
-
-        Ok(Self {
-            method,
-            path,
-            version,
-            headers,
-            data,
-            raw,
-        })
+        headers
     }
 }
 
 impl fmt::Display for HttpPacket<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let Self {
-            method,
-            path,
-            version,
-            ..
-        } = self;
-        write!(f, "HTTP: {method} {path} HTTP/{version}")
+        match self {
+            HttpPacket::Request(req) => {
+                write!(f, "HTTP: {} {} HTTP/{}", req.method, req.path, req.version)
+            }
+            HttpPacket::Response(resp) => {
+                write!(
+                    f,
+                    "HTTP: HTTP/{} {} {}",
+                    resp.version, resp.status_code, resp.reason_phrase
+                )
+            }
+        }
     }
 }
 
 impl PacketDetail for HttpPacket<'_> {
     fn summary(&self) -> String {
-        let Self {
-            method,
-            path,
-            version,
-            ..
-        } = self;
-        format!("{method} {path} HTTP/{version}")
+        match self {
+            HttpPacket::Request(req) => {
+                format!("{} {} HTTP/{}", req.method, req.path, req.version)
+            }
+            HttpPacket::Response(resp) => {
+                format!(
+                    "HTTP/{} {} {}",
+                    resp.version, resp.status_code, resp.reason_phrase
+                )
+            }
+        }
     }
 
     fn details(&self) -> Vec<String> {
-        let mut result = vec![
-            format!("Method: {}", self.method),
-            format!("Path: {}", self.path),
-            format!("Version: HTTP/{}", self.version),
-            format!("Headers: {} headers", self.headers.len()),
-        ];
-        let headers = self.headers.iter().map(|(k, v)| format!("  {k}: {v}"));
-        result.extend(headers);
-        result
+        match self {
+            HttpPacket::Request(req) => {
+                let mut result = vec![
+                    "Type: Request".to_string(),
+                    format!("Method: {}", req.method),
+                    format!("Path: {}", req.path),
+                    format!("Version: HTTP/{}", req.version),
+                    format!("Headers: {} headers", req.headers.len()),
+                ];
+                let headers = req.headers.iter().map(|(k, v)| format!("  {k}: {v}"));
+                result.extend(headers);
+                if !req.data.is_empty() {
+                    result.push(format!("Body: {} bytes", req.data.len()));
+                }
+                result
+            }
+            HttpPacket::Response(resp) => {
+                let mut result = vec![
+                    "Type: Response".to_string(),
+                    format!("Version: HTTP/{}", resp.version),
+                    format!("Status: {} {}", resp.status_code, resp.reason_phrase),
+                    format!("Headers: {} headers", resp.headers.len()),
+                ];
+                let headers = resp.headers.iter().map(|(k, v)| format!("  {k}: {v}"));
+                result.extend(headers);
+                if !resp.data.is_empty() {
+                    result.push(format!("Body: {} bytes", resp.data.len()));
+                }
+                result
+            }
+        }
     }
 
     fn slug(&self) -> &'static str {
@@ -144,6 +250,99 @@ impl PacketDetail for HttpPacket<'_> {
     }
 
     fn length(&self) -> usize {
-        self.raw.len()
+        match self {
+            HttpPacket::Request(req) => req.raw.len(),
+            HttpPacket::Response(resp) => resp.raw.len(),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_http_request() {
+        let data = b"GET /index.html HTTP/1.1\r\nHost: example.com\r\nUser-Agent: test\r\n\r\n";
+        let packet = HttpPacket::new(data).unwrap();
+
+        match packet {
+            HttpPacket::Request(req) => {
+                assert_eq!(req.method, "GET");
+                assert_eq!(req.path, "/index.html");
+                assert_eq!(req.version, "1.1");
+                assert_eq!(req.headers.len(), 2);
+                assert_eq!(req.headers[0], ("Host", "example.com"));
+                assert_eq!(req.headers[1], ("User-Agent", "test"));
+                assert_eq!(req.data, b"");
+            }
+            HttpPacket::Response(_) => panic!("Expected request, got response"),
+        }
+    }
+
+    #[test]
+    fn test_parse_http_response() {
+        let data = b"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 13\r\n\r\nHello, World!";
+        let packet = HttpPacket::new(data).unwrap();
+
+        match packet {
+            HttpPacket::Response(resp) => {
+                assert_eq!(resp.version, "1.1");
+                assert_eq!(resp.status_code, 200);
+                assert_eq!(resp.reason_phrase, "OK");
+                assert_eq!(resp.headers.len(), 2);
+                assert_eq!(resp.headers[0], ("Content-Type", "text/html"));
+                assert_eq!(resp.headers[1], ("Content-Length", "13"));
+                assert_eq!(resp.data, b"Hello, World!");
+            }
+            HttpPacket::Request(_) => panic!("Expected response, got request"),
+        }
+    }
+
+    #[test]
+    fn test_parse_http_response_with_multiword_reason() {
+        let data = b"HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\n\r\n";
+        let packet = HttpPacket::new(data).unwrap();
+
+        match packet {
+            HttpPacket::Response(resp) => {
+                assert_eq!(resp.version, "1.1");
+                assert_eq!(resp.status_code, 404);
+                assert_eq!(resp.reason_phrase, "Not Found");
+            }
+            HttpPacket::Request(_) => panic!("Expected response, got request"),
+        }
+    }
+
+    #[test]
+    fn test_parse_http_request_with_post_body() {
+        let data = b"POST /api/data HTTP/1.1\r\nContent-Type: application/json\r\n\r\n{\"key\":\"value\"}";
+        let packet = HttpPacket::new(data).unwrap();
+
+        match packet {
+            HttpPacket::Request(req) => {
+                assert_eq!(req.method, "POST");
+                assert_eq!(req.path, "/api/data");
+                assert_eq!(req.data, b"{\"key\":\"value\"}");
+            }
+            HttpPacket::Response(_) => panic!("Expected request, got response"),
+        }
+    }
+
+    #[test]
+    fn test_parse_http_with_binary_body() {
+        // Response with binary data (non-UTF8 in body)
+        let mut data = b"HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\n\r\n".to_vec();
+        data.extend_from_slice(&[0xFF, 0xFE, 0xFD, 0xFC]); // Binary data
+
+        let packet = HttpPacket::new(&data).unwrap();
+
+        match packet {
+            HttpPacket::Response(resp) => {
+                assert_eq!(resp.status_code, 200);
+                assert_eq!(resp.data, &[0xFF, 0xFE, 0xFD, 0xFC]);
+            }
+            HttpPacket::Request(_) => panic!("Expected response, got request"),
+        }
     }
 }
