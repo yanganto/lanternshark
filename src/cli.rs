@@ -2,7 +2,7 @@
 
 use argh::FromArgs;
 
-/// WireShark in the terminal.
+/// 🦈 WireShark in the terminal.
 #[derive(FromArgs, PartialEq, Debug)]
 pub struct Cli {
     /// the subcommand to run

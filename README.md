@@ -42,7 +42,8 @@ cargo build --release
 
 ## 📖 Usage
 
-### ▶️ Running TUI
+
+### 🚀 Quick Start
 
 ```bash
 sudo ./termshark capture # To capture from default device
@@ -95,6 +96,23 @@ HTTP source:192.168.1.1    # Traffic containing "HTTP" from source
 ```
 
 See [`FILTER_SYNTAX.md`](./docs/FILTER_SYNTAX.md) for detailed documentation.
+
+### ▶️ CLI Reference
+
+```bash
+$ termshark --help
+Usage: termshark <command> [<args>]
+
+🦈 WireShark in the terminal.
+
+Options:
+  --help, help      display usage information
+
+Commands:
+  capture           Capture and inspect packets from a device.
+  list              List available devices.
+  load              Load and inspect packets from a file.
+```
 
 ## 💡 Demos & Samples
 
