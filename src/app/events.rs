@@ -2,8 +2,8 @@
 
 use super::state::App;
 use ratatui::crossterm::event::{self, Event, KeyCode, KeyEvent, KeyModifiers};
+use tui_input::InputRequest;
 use std::time::Duration;
-use tui_input::backend::crossterm::EventHandler;
 
 /// Handle terminal events (keyboard input).
 ///
@@ -31,8 +31,8 @@ pub fn handle_events(app: &mut App) -> Result<(), std::io::Error> {
                             app.clear_filter_and_input();
                         }
                     },
-                    _ => {
-                        app.filter_input.handle_event(&evt);
+                    _ => if let Some(req) = keyevent_to_input_request(&key) {
+                        app.filter_input.handle(req);
                     }
                 }
             } else {
@@ -73,4 +73,38 @@ fn handle_key_event(app: &mut App, key: KeyEvent) -> bool {
         _ => {}
     }
     true
+}
+
+/// Convert a [`KeyEvent`] to an optional [`InputRequest`] for tui_input. Adapted from [tui_input's own implementation](https://github.com/sayanarijit/tui-input/blob/main/src/backend/crossterm.rs#L16-L66).
+pub fn keyevent_to_input_request(key: &KeyEvent) -> Option<InputRequest> {
+    use KeyCode::*;
+    use InputRequest::*;
+    let KeyEvent { code, modifiers, .. } = *key;
+    match (code, modifiers) {
+        // Backspace without modifiers to delete previous character
+        (Backspace, KeyModifiers::NONE) => Some(DeletePrevChar),
+        // Delete key without modifiers to delete next character
+        (Delete, KeyModifiers::NONE) => Some(DeleteNextChar),
+        // Left arrow to move cursor left
+        (Left, KeyModifiers::NONE) => Some(GoToPrevChar),
+        // Ctrl + Left arrow to move cursor to previous word
+        (Left, KeyModifiers::CONTROL) => Some(GoToPrevWord),
+        // Right arrow to move cursor right
+        (Right, KeyModifiers::NONE) => Some(GoToNextChar),
+        // Ctrl + Right arrow to move cursor to next word
+        (Right, KeyModifiers::CONTROL) => Some(GoToNextWord),
+        // Ctrl + Backspace or Ctrl + H to delete previous word (Ctrl + Backspace will be recognized as Ctrl + H on some systems)
+        (Backspace, KeyModifiers::CONTROL) | (Char('h'), KeyModifiers::CONTROL) => Some(DeletePrevWord),
+        // Ctrl + Delete to delete next word
+        (Delete, KeyModifiers::CONTROL) => Some(DeleteNextWord),
+        // Ctrl + K to delete till end of line
+        (Char('k'), KeyModifiers::CONTROL) => Some(DeleteTillEnd),
+        // Home key to move cursor to start of line
+        (Home, KeyModifiers::NONE) => Some(GoToStart),
+        // End key to move cursor to end of line
+        (End, KeyModifiers::NONE) => Some(GoToEnd),
+        // Insert character for regular character input
+        (Char(c), KeyModifiers::NONE | KeyModifiers::SHIFT) => Some(InsertChar(c)),
+        (_, _) => None,
+    }
 }

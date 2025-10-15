@@ -98,9 +98,9 @@ fn render_filter_input(frame: &mut Frame, app: &App, area: Rect) {
         };
 
         let title = if let Some(ref error) = app.filter_error {
-            format!("Filter (Error: {error}) - Press Enter to apply, Esc to cancel")
+            format!("Filter (Error: {error}) - Press Enter to apply, Esc to clear")
         } else {
-            "Filter - Press Enter to apply, Esc to cancel".to_string()
+            "Filter - Press Enter to apply, Esc to clear".to_string()
         };
 
         let input = Paragraph::new(app.filter_input.value())
@@ -120,7 +120,7 @@ fn render_filter_input(frame: &mut Frame, app: &App, area: Rect) {
         frame.set_cursor_position((cursor_x, cursor_y));
     } else {
         // Filter applied but not editing: show current filter
-        let title = "Filter Active - Press Enter to edit, Esc to clear";
+        let title = "Filter Active - Press Enter to edit, Esc to cancel";
 
         let input = Paragraph::new(app.filter_input.value())
             .style(Style::default().fg(Color::Cyan))

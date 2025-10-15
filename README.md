@@ -66,7 +66,7 @@ Alternatively, you can [configure with `setcap`](https://github.com/rust-pcap/pc
 
 - **Enter**: Edit or apply filter
 - **Esc**: Clear filter input, exit editing or disable filter
-- Arrows, backspace, delete etc.: Edit the filter
+- Arrows, backspace, delete etc.: Edit the filter, see `keyevent_to_input_request` in [`event.rs`](./src/app/events.rs) for more details.
 
 #### Application
 
