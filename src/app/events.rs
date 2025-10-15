@@ -21,7 +21,7 @@ pub fn handle_events(app: &mut App) -> Result<(), std::io::Error> {
             }
             if app.filter_editing {
                 match key.code {
-                    KeyCode::Enter => app.apply_filter_input(), // Apply filter
+                    KeyCode::Enter => app.apply_filter_from_input(), // Apply filter
                     KeyCode::Esc => {
                         if app.filter_input.value().is_empty() {
                             // Already empty, just exit filter mode

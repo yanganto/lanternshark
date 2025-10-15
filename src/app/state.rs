@@ -71,7 +71,7 @@ impl App {
     }
 
     /// Apply a filter to all captured packets.
-    pub fn apply_filter(&mut self) {
+    fn apply_filter(&mut self) {
         self.filtered_indices.clear();
 
         if let Some(ref filter) = self.filter {
@@ -91,22 +91,8 @@ impl App {
         self.hex_scroll = 0;
     }
 
-    /// Enter filter mode.
-    pub fn enter_filter_mode(&mut self) {
-        self.filter_editing = true;
-    }
-
-    /// Exit filter mode and disable the filter.
-    pub fn exit_filter_mode(&mut self) {
-        self.filter_editing = false;
-        // self.filter_input.reset(); // Clear input
-        self.filter = None;
-        self.filter_error = None;
-        self.apply_filter();
-    }
-
-    /// Apply current filter input and exit filter mode.
-    pub fn apply_filter_input(&mut self) {
+    /// Update the filter based on current input.
+    fn update_filter_from_input(&mut self) {
         let value = self.filter_input.value();
         if value.trim().is_empty() {
             self.filter = None;
@@ -123,9 +109,29 @@ impl App {
                 }
             }
         }
+    }
+
+    /// Enter filter mode.
+    pub fn enter_filter_mode(&mut self) {
+        self.filter_editing = true;
+        self.update_filter_from_input();
+        self.apply_filter();
+    }
+
+    /// Exit filter mode and disable the filter, preserving current input.
+    pub fn exit_filter_mode(&mut self) {
+        self.filter_editing = false;
+        self.filter = None;
+        self.filter_error = None;
+        self.apply_filter();
+    }
+
+    /// Apply current filter input and exit filter editing.
+    pub fn apply_filter_from_input(&mut self) {
+        self.update_filter_from_input();
         self.apply_filter();
 
-        // Only exit filter mode if there's no error
+        // Only exit filter editing if there's no error
         if self.filter_error.is_none() {
             self.filter_editing = false;
         }
@@ -133,7 +139,6 @@ impl App {
 
     /// Clear current filter and input.
     pub fn clear_filter_and_input(&mut self) {
-        // self.filter_editing = false;
         self.filter = None;
         self.filter_error = None;
         self.filter_input.reset();
