@@ -17,39 +17,72 @@ pub fn render(frame: &mut Frame, app: &mut App) {
     // Show filter bar if in filter mode OR if a filter is currently applied OR if there's a filter error
     let show_filter_bar = app.filter_mode || app.filter.is_some() || app.filter_error.is_some();
 
-    let constraints = if show_filter_bar {
-        vec![
-            Constraint::Length(3),      // Filter input bar
-            Constraint::Percentage(37), // Packet list (reduced)
-            Constraint::Percentage(30), // Packet details
-            Constraint::Percentage(28), // Hex dump
-            Constraint::Length(2),      // Help bar
-        ]
-    } else {
-        vec![
-            Constraint::Percentage(40), // Packet list
-            Constraint::Percentage(30), // Packet details
-            Constraint::Percentage(28), // Hex dump
-            Constraint::Length(2),      // Help bar
-        ]
-    };
+    // Use horizontal layout for details and hex dump when terminal is wide enough
+    let use_horizontal_layout = frame.area().width >= 148;
 
-    let chunks = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints(constraints)
-        .split(frame.area());
+    if use_horizontal_layout {
+        // Wide terminal: horizontal layout for details and hex dump
+        let mut main_constraints = vec![
+            Constraint::Fill(6),   // Packet list
+            Constraint::Fill(4),   // Details + Hex (combined)
+            Constraint::Length(1), // Help bar
+        ];
+        if show_filter_bar {
+            main_constraints.insert(0, Constraint::Length(3)); // Filter input bar
+        };
 
-    if show_filter_bar {
-        render_filter_input(frame, app, chunks[0]);
-        render_packet_list(frame, app, chunks[1]);
-        render_packet_details(frame, app, chunks[2]);
-        render_hex_dump(frame, app, chunks[3]);
-        render_help(frame, chunks[4]);
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints(main_constraints)
+            .split(frame.area());
+
+        let offset = if show_filter_bar {
+            render_filter_input(frame, app, chunks[0]);
+            1
+        } else {
+            0
+        };
+        render_packet_list(frame, app, chunks[offset + 0]);
+
+        // Split the middle area horizontally for details and hex dump
+        let bottom_chunks = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([
+                Constraint::Min(0),     // Packet details (takes remaining space)
+                Constraint::Length(74), // Hex dump (fixed width)
+            ])
+            .split(chunks[offset + 1]);
+
+        render_packet_details(frame, app, bottom_chunks[0]);
+        render_hex_dump(frame, app, bottom_chunks[1]);
+        render_help(frame, chunks[offset + 2]);
     } else {
-        render_packet_list(frame, app, chunks[0]);
-        render_packet_details(frame, app, chunks[1]);
-        render_hex_dump(frame, app, chunks[2]);
-        render_help(frame, chunks[3]);
+        // Narrow terminal: vertical layout (original)
+        let mut constraints = vec![
+            Constraint::Fill(4),   // Packet list
+            Constraint::Fill(3),   // Packet details
+            Constraint::Fill(3),   // Hex dump
+            Constraint::Length(1), // Help bar
+        ];
+        if show_filter_bar {
+            constraints.insert(0, Constraint::Length(3)); // Filter input bar
+        }
+
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints(constraints)
+            .split(frame.area());
+
+        let offset = if show_filter_bar {
+            render_filter_input(frame, app, chunks[0]);
+            1
+        } else {
+            0
+        };
+        render_packet_list(frame, app, chunks[offset + 0]);
+        render_packet_details(frame, app, chunks[offset + 1]);
+        render_hex_dump(frame, app, chunks[offset + 2]);
+        render_help(frame, chunks[offset + 3]);
     }
 }
 
@@ -401,11 +434,6 @@ fn render_help(frame: &mut Frame, area: Rect) {
         Span::styled(" quit", Style::default().fg(Color::DarkGray)),
     ]);
 
-    let paragraph = Paragraph::new(help_text).block(
-        Block::default()
-            .borders(Borders::TOP)
-            .border_style(Style::default().fg(Color::DarkGray)),
-    );
-
+    let paragraph = Paragraph::new(help_text);
     frame.render_widget(paragraph, area);
 }

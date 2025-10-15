@@ -9,7 +9,6 @@
     - `http`: Sniff http form posts
 - Upper-case hex
 - Scroll each panel with wheel / Tabbing through sections and use the same hotkeys
-- Stacking details panel and hex dump panel horizontally when wide enough
 
 ## Not Planned (for now?)
 
