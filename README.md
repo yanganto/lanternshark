@@ -64,9 +64,9 @@ Alternatively, you can [configure with `setcap`](https://github.com/rust-pcap/pc
 
 #### Filtering
 
-- **Enter**: Enter filter mode (or apply filter when editing)
-- **Esc**: Clear active filter (or cancel when editing)
-- **Backspace**: Delete character while editing filter
+- **Enter**: Enter filter mode or apply filter
+- **Esc**: Clear filter input, exit editing or disable filter
+- Arrows, backspace, delete: Edit the filter
 
 #### Application
 

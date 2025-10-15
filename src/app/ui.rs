@@ -15,7 +15,7 @@ use ratatui::{
 /// Render the main UI.
 pub fn render(frame: &mut Frame, app: &mut App) {
     // Show filter bar if in filter mode OR if a filter is currently applied OR if there's a filter error
-    let show_filter_bar = app.filter_mode || app.filter.is_some() || app.filter_error.is_some();
+    let show_filter_bar = app.filter_editing || app.filter.is_some() || app.filter_error.is_some();
 
     // Use horizontal layout for details and hex dump when terminal is wide enough
     let use_horizontal_layout = frame.area().width >= 148;
@@ -89,7 +89,7 @@ pub fn render(frame: &mut Frame, app: &mut App) {
 /// Render the filter input bar.
 fn render_filter_input(frame: &mut Frame, app: &App, area: Rect) {
     // Determine text and style based on mode
-    if app.filter_mode {
+    if app.filter_editing {
         // In filter mode: show current input being edited
         let style = if app.filter_error.is_some() {
             Style::default().fg(Color::Red)
@@ -103,7 +103,7 @@ fn render_filter_input(frame: &mut Frame, app: &App, area: Rect) {
             "Filter - Press Enter to apply, Esc to cancel".to_string()
         };
 
-        let input = Paragraph::new(app.filter_input.as_str())
+        let input = Paragraph::new(app.filter_input.value())
             .style(style)
             .block(
                 Block::default()
@@ -115,20 +115,14 @@ fn render_filter_input(frame: &mut Frame, app: &App, area: Rect) {
         frame.render_widget(input, area);
 
         // Show cursor when in filter mode
-        let cursor_x = area.x + app.filter_input.len() as u16 + 1;
+        let cursor_x = area.x + app.filter_input.visual_cursor() as u16 + 1;
         let cursor_y = area.y + 1;
         frame.set_cursor_position((cursor_x, cursor_y));
     } else {
         // Filter applied but not editing: show current filter
-        let filter_text = app
-            .filter
-            .as_ref()
-            .map(|f| f.to_string())
-            .unwrap_or_default();
-
         let title = "Filter Active - Press Enter to edit, Esc to clear";
 
-        let input = Paragraph::new(filter_text.as_str())
+        let input = Paragraph::new(app.filter_input.value())
             .style(Style::default().fg(Color::Cyan))
             .block(
                 Block::default()

@@ -207,6 +207,7 @@ impl PacketFilter {
 }
 
 impl fmt::Display for PacketFilter {
+    // For future use?
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut parts = Vec::new();
 

@@ -2,6 +2,7 @@
 
 use super::{filter::PacketFilter, packet_info::PacketInfo};
 use ratatui::widgets::TableState;
+use tui_input::Input;
 
 /// Main application state.
 #[derive(Debug)]
@@ -22,10 +23,10 @@ pub struct App {
     pub should_quit: bool,
     /// Current packet filter
     pub filter: Option<PacketFilter>,
-    /// Filter input string (when editing)
-    pub filter_input: String,
-    /// Whether filter input mode is active
-    pub filter_mode: bool,
+    /// Filter input
+    pub filter_input: Input,
+    /// Whether we're editing the filter
+    pub filter_editing: bool,
     /// Error message from last filter parse attempt
     pub filter_error: Option<String>,
     /// Visible page height for packet list (updated by UI)
@@ -47,8 +48,8 @@ impl App {
             hex_scroll: 0,
             should_quit: false,
             filter: None,
-            filter_input: String::new(),
-            filter_mode: false,
+            filter_input: Input::default(),
+            filter_editing: false,
             filter_error: None,
             packet_list_height: 10, // Default page size
         }
@@ -90,13 +91,28 @@ impl App {
         self.hex_scroll = 0;
     }
 
-    /// Set filter from input string.
-    pub fn set_filter(&mut self, input: &str) {
-        if input.trim().is_empty() {
+    /// Enter filter mode.
+    pub fn enter_filter_mode(&mut self) {
+        self.filter_editing = true;
+    }
+
+    /// Exit filter mode and disable the filter.
+    pub fn exit_filter_mode(&mut self) {
+        self.filter_editing = false;
+        // self.filter_input.reset(); // Clear input
+        self.filter = None;
+        self.filter_error = None;
+        self.apply_filter();
+    }
+
+    /// Apply current filter input and exit filter mode.
+    pub fn apply_filter_input(&mut self) {
+        let value = self.filter_input.value();
+        if value.trim().is_empty() {
             self.filter = None;
             self.filter_error = None;
         } else {
-            match PacketFilter::parse(input) {
+            match PacketFilter::parse(value) {
                 Ok(filter) => {
                     self.filter = Some(filter);
                     self.filter_error = None;
@@ -107,44 +123,20 @@ impl App {
                 }
             }
         }
-
         self.apply_filter();
-    }
-
-    /// Enter filter editing mode.
-    pub fn enter_filter_mode(&mut self) {
-        self.filter_mode = true;
-        // Initialize input with current filter if any
-        self.filter_input = self
-            .filter
-            .as_ref()
-            .map(|f| f.to_string())
-            .unwrap_or_default();
-    }
-
-    /// Exit filter editing mode without applying.
-    pub fn exit_filter_mode(&mut self) {
-        self.filter_mode = false;
-        self.filter_input.clear();
-        self.filter_error = None;
-    }
-
-    /// Apply current filter input and exit filter mode.
-    pub fn apply_filter_input(&mut self) {
-        let input = self.filter_input.clone();
-        self.set_filter(&input);
 
         // Only exit filter mode if there's no error
         if self.filter_error.is_none() {
-            self.filter_mode = false;
-            self.filter_input.clear();
+            self.filter_editing = false;
         }
     }
 
-    /// Clear current filter.
-    pub fn clear_filter(&mut self) {
+    /// Clear current filter and input.
+    pub fn clear_filter_and_input(&mut self) {
+        // self.filter_editing = false;
         self.filter = None;
         self.filter_error = None;
+        self.filter_input.reset();
         self.apply_filter();
     }
 

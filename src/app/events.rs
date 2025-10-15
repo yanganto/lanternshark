@@ -1,8 +1,9 @@
 //! Event handling for user input.
 
 use super::state::App;
-use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyModifiers};
+use ratatui::crossterm::event::{self, Event, KeyCode, KeyEvent, KeyModifiers};
 use std::time::Duration;
+use tui_input::backend::crossterm::EventHandler;
 
 /// Handle terminal events (keyboard input).
 ///
@@ -12,26 +13,38 @@ use std::time::Duration;
 pub fn handle_events(app: &mut App) -> Result<(), std::io::Error> {
     // Poll for events with a timeout
     if event::poll(Duration::from_millis(100))? {
-        if let Event::Key(key) = event::read()? {
-            handle_key_event(app, key);
+        let evt = event::read()?;
+        if let Event::Key(key) = evt {
+            // Do not handle KeyEventKind::Release
+            if matches!(key.kind, event::KeyEventKind::Release) {
+                return Ok(());
+            }
+            if app.filter_editing {
+                match key.code {
+                    KeyCode::Enter => app.apply_filter_input(), // Apply filter
+                    KeyCode::Esc => {
+                        if app.filter_input.value().is_empty() {
+                            // Already empty, just exit filter mode
+                            app.exit_filter_mode();
+                        } else {
+                            // Clear filter and input
+                            app.clear_filter_and_input();
+                        }
+                    },
+                    _ => {
+                        app.filter_input.handle_event(&evt);
+                    }
+                }
+            } else {
+                handle_key_event(app, key);
+            }
         }
     }
     Ok(())
 }
 
 /// Handle keyboard key events.
-fn handle_key_event(app: &mut App, key: KeyEvent) {
-    // If in filter mode, handle filter input
-    if app.filter_mode {
-        handle_filter_input(app, key);
-        return;
-    }
-
-    // Do not handle KeyEventKind::Release
-    if matches!(key.kind, event::KeyEventKind::Release) {
-        return;
-    }
-
+fn handle_key_event(app: &mut App, key: KeyEvent) -> bool {
     match key.code {
         // Quit
         KeyCode::Char('q') | KeyCode::Char('Q') => app.quit(),
@@ -39,7 +52,7 @@ fn handle_key_event(app: &mut App, key: KeyEvent) {
 
         // Filter mode
         KeyCode::Enter => app.enter_filter_mode(),
-        KeyCode::Esc => app.clear_filter(), // Clear filter when Esc pressed outside filter mode
+        KeyCode::Esc => app.exit_filter_mode(), // Exits filter editing mode when Esc pressed outside filter mode, but saves current input
 
         // Navigate packet list
         KeyCode::Up | KeyCode::Char('k') => app.select_previous(),
@@ -59,27 +72,5 @@ fn handle_key_event(app: &mut App, key: KeyEvent) {
 
         _ => {}
     }
-}
-
-/// Handle keyboard input when in filter mode.
-fn handle_filter_input(app: &mut App, key: KeyEvent) {
-    match key.code {
-        // Exit filter mode without applying
-        KeyCode::Esc => app.exit_filter_mode(),
-
-        // Apply filter
-        KeyCode::Enter => app.apply_filter_input(),
-
-        // Delete last character
-        KeyCode::Backspace => {
-            app.filter_input.pop();
-        }
-
-        // Add character to input
-        KeyCode::Char(c) => {
-            app.filter_input.push(c);
-        }
-
-        _ => {}
-    }
+    true
 }
