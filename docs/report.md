@@ -119,12 +119,52 @@ sudo ./target/release/termshark capture -d <interface> -s out.pcap
 ./target/release/termshark load samples/HTTP.pcap
 ```
 
+### TUI 界面
+
+当运行 `capture` 或 `load` 命令时，程序会通过 TUI 展示抓包信息。此界面分为三个部分，分别是：
+
+- 包列表 (Captured Packets)
+- 详细信息 (Packet Details)
+- 原始数据 (Packet Bytes)
+
+若终端较窄，则上下分为三栏展示：
+
+![TUI-窄](/images/tui-narrow.png)
+
+若终端较宽，则详细信息和原始数据并排展示：
+
+![TUI-宽](/images/tui-wide.png)
+
 ### 键盘快捷键
 
-- 导航：↑/↓ 或 j/k；PageUp/Down；Home/End
-- 滚动详情/十六进制：w/s 与 e/d
-- 过滤：Enter 进入/应用过滤；Esc 清除或取消；Backspace 编辑时删除末尾字符
-- 退出：q 或 Ctrl+C
+#### 包列表
+
+- `↑`/`↓`: 上一项/下一项
+- `PageUp`/`PageDown`: 上一页/下一页
+- `Home`/`End`: 开头/末尾
+
+#### 详细信息与原始数据
+
+- `w`/`s`: 详细信息的上一行/下一行
+- `e`/`d`: 原始数据的上一行/下一行
+
+#### 过滤
+
+- `Enter`: 编辑/应用过滤
+- `Esc`: 清除/取消过滤
+- `←`/`→`: 左右移动光标
+- `Ctrl` + `←`/`→`: 按照单词左右移动光标
+- `BackSpace`: 删除光标前字符
+- `Ctrl` + `BackSpace`: 删除光标前单词
+- `Delete`: 删除光标后字符
+- `Ctrl` + `Delete`: 删除光标后单词
+- `Ctrl` + `K`: 删除光标后所有
+- `Home`: 移动光标至开头
+- `End`: 移动光标至末尾
+
+#### 退出
+
+`q` 或 `Ctrl` + `C`。
 
 ### 过滤语法
 

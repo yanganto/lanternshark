@@ -42,7 +42,6 @@ cargo build --release
 
 ## 📖 Usage
 
-
 ### 🚀 Quick Start
 
 ```bash
@@ -53,24 +52,34 @@ Alternatively, you can [configure with `setcap`](https://github.com/rust-pcap/pc
 
 ### ⌨️ Keyboard Control
 
-#### Navigation
+#### Captured Packets
 
-- **↑/↓** or **j/k**: Select previous/next packet
-- **Page Up/Down**: Scroll one page at a time (adaptive to terminal size)
-- **Home**: Jump to first packet
-- **End**: Jump to last packet
-- **w/s**: Scroll packet details panel up/down
-- **e/d**: Scroll hex dump panel up/down
+- `↑`/`↓`: Previous/Next item
+- `PageUp`/`PageDown`: Previous/Next page
+- `Home`/`End`: Start/End
 
-#### Filtering
+#### Packet Details & Packet Bytes
 
-- **Enter**: Edit or apply filter
-- **Esc**: Clear filter input, exit editing or disable filter
-- Arrows, backspace, delete etc.: Edit the filter, see `keyevent_to_input_request` in [`event.rs`](./src/app/events.rs) for more details.
+- `w`/`s`: Previous/Next line on "Packet Details"
+- `e`/`d`: Previous/Next line on "Packet Bytes"
 
-#### Application
+#### Filter
 
-- **q** or **Ctrl+C**: Quit the application
+- `Enter`: Edit/Apply the filter
+- `Esc`: Clear/Cancel the filter
+- `←`/`→`: Move the cursor left/right
+- `Ctrl` + `←`/`→`: Move the cursor left/right by word
+- `BackSpace`: Delete the previous character
+- `Ctrl` + `BackSpace`: Delete the previous word
+- `Delete`: Delete the next character
+- `Ctrl` + `Delete`: Delete the next word
+- `Ctrl` + `K`: Delete all after the cursor
+- `Home`: Move cursor to the start
+- `End`: Move cursor to the end
+
+#### Quit / Exit
+
+`q` or `Ctrl` + `C`.
 
 ### 🔍 Filter Syntax
 
@@ -116,11 +125,17 @@ Commands:
 
 ## 💡 Demos & Samples
 
-<details><summary>📽️ Demo asciicast</summary>
+### 📽️ Demo asciicast
 
 [![asciicast](https://asciinema.org/a/qgBIPexnCMOzXZbhqdusL27P7.svg)](https://asciinema.org/a/qgBIPexnCMOzXZbhqdusL27P7)
 
-</details>
+### 🖼️ Screenshots
+
+![TUI-Narrow](/images/tui-narrow.png)
+
+![TUI-Wide](/images/tui-wide.png)
+
+### 📦 Sample packets
 
 Here's a list of sample packets for testing. All of them are [taken from WireShark wiki](https://wiki.wireshark.org/SampleCaptures), so feel free to visit it for more.
 
