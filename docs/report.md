@@ -80,6 +80,8 @@ TermShark 是一个在终端中使用的“迷你版 WireShark”，基于 Rust 
 10. 细节改进
 11. DNS, mDNS 包解析 (`2e88e62`, `49c7747`)
 12. HTTP 包解析 (`eff279f` - `ee0a81d`)
+13. 更好的输入框 (`f5fc900`)
+14. 修改部分输入框的快捷键 (`07b3af`)
 
 难点与解决：
 
@@ -98,25 +100,25 @@ TermShark 是一个在终端中使用的“迷你版 WireShark”，基于 Rust 
 列出设备：
 
 ```bash
-./target/release/termshark list
+termshark list
 ```
 
 抓包 (需要 root 或通过 setcap 配置权限)：
 
 ```bash
-sudo ./target/release/termshark capture
+sudo termshark capture
 ```
 
 指定设备抓包并保存：
 
 ```bash
-sudo ./target/release/termshark capture -d <interface> -s out.pcap
+sudo termshark capture -d <interface> -s out.pcap
 ```
 
 加载已有 pcap 文件：
 
 ```bash
-./target/release/termshark load samples/HTTP.pcap
+termshark load samples/HTTP.pcap
 ```
 
 ### TUI 界面
