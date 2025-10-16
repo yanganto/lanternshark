@@ -103,14 +103,12 @@ fn render_filter_input(frame: &mut Frame, app: &App, area: Rect) {
             "Filter - Press Enter to apply, Esc to clear".to_string()
         };
 
-        let input = Paragraph::new(app.filter_input.value())
-            .style(style)
-            .block(
-                Block::default()
-                    .title(title)
-                    .borders(Borders::ALL)
-                    .border_style(Style::default().fg(Color::Yellow)),
-            );
+        let input = Paragraph::new(app.filter_input.value()).style(style).block(
+            Block::default()
+                .title(title)
+                .borders(Borders::ALL)
+                .border_style(Style::default().fg(Color::Yellow)),
+        );
 
         frame.render_widget(input, area);
 
