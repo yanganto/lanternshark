@@ -1,6 +1,6 @@
 //! Command line interface logic.
-
 use argh::FromArgs;
+use std::path::PathBuf;
 
 /// 🦈 WireShark in the terminal.
 #[derive(FromArgs, PartialEq, Debug)]
@@ -8,6 +8,10 @@ pub struct Cli {
     /// the subcommand to run
     #[argh(subcommand)]
     pub subcommand: SubCommands,
+
+    /// the key binding config
+    #[argh(option, short = 'k')]
+    pub key_config: Option<PathBuf>,
 }
 
 /// The available subcommands.
@@ -20,6 +24,8 @@ pub enum SubCommands {
     List(List),
     /// Load and inspect packets from a file.
     Load(Load),
+    /// Show key config exmaple
+    Config(Config),
 }
 
 /// Capture and inspect packets from a device.
@@ -46,4 +52,13 @@ pub struct Load {
     /// the file to load from
     #[argh(positional)]
     pub file: String,
+}
+
+/// Show or save key config exmaple
+#[derive(FromArgs, PartialEq, Debug)]
+#[argh(subcommand, name = "key-config-example")]
+pub struct Config {
+    /// the file to save config example
+    #[argh(positional)]
+    pub path: Option<PathBuf>,
 }

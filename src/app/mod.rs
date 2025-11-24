@@ -6,6 +6,9 @@ mod packet_info;
 mod state;
 mod ui;
 
+/// Config for key bindings
+pub mod key_config;
+
 use super::ethernet::EthernetPacket;
 use events::handle_events;
 use packet_info::PacketInfo;
