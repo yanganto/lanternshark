@@ -1,6 +1,11 @@
 //! Event handling for user input.
 
+use super::key_config::KeyEvent::{
+    ApplyFilter, ClearFilter, DtlDown, DtlUp, HexDown, HexUp, PktDown, PktEnd, PktHome,
+    PktPageDown, PktPageUp, PktUp, Quit,
+};
 use super::state::App;
+use crossterm_keybind::KeyBindTrait;
 use ratatui::crossterm::event::{self, Event, KeyCode, KeyEvent, KeyModifiers};
 use std::time::Duration;
 use tui_input::InputRequest;
@@ -20,21 +25,19 @@ pub fn handle_events(app: &mut App) -> Result<(), std::io::Error> {
                 return Ok(());
             }
             if app.filter_editing {
-                match key.code {
-                    KeyCode::Enter => app.apply_filter_from_input(), // Apply filter
-                    KeyCode::Esc => {
-                        if app.filter_input.value().is_empty() {
-                            // Already empty, just exit filter mode
-                            app.exit_filter_mode();
-                        } else {
-                            // Clear filter and input
-                            app.clear_filter_and_input();
-                        }
+                if ApplyFilter.match_any(&key) {
+                    app.apply_filter_from_input(); // Apply filter
+                } else if ClearFilter.match_any(&key) {
+                    if app.filter_input.value().is_empty() {
+                        // Already empty, just exit filter mode
+                        app.exit_filter_mode();
+                    } else {
+                        // Clear filter and input
+                        app.clear_filter_and_input();
                     }
-                    _ => {
-                        if let Some(req) = keyevent_to_input_request(&key) {
-                            app.filter_input.handle(req);
-                        }
+                } else {
+                    if let Some(req) = keyevent_to_input_request(&key) {
+                        app.filter_input.handle(req);
                     }
                 }
             } else {
@@ -47,32 +50,33 @@ pub fn handle_events(app: &mut App) -> Result<(), std::io::Error> {
 
 /// Handle keyboard key events.
 fn handle_key_event(app: &mut App, key: KeyEvent) -> bool {
-    match key.code {
-        // Quit
-        KeyCode::Char('q') | KeyCode::Char('Q') => app.quit(),
-        KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => app.quit(),
-
-        // Filter mode
-        KeyCode::Enter => app.enter_filter_mode(),
-        KeyCode::Esc => app.exit_filter_mode(), // Exits filter editing mode when Esc pressed outside filter mode, but saves current input
-
-        // Navigate packet list
-        KeyCode::Up | KeyCode::Char('k') => app.select_previous(),
-        KeyCode::Down | KeyCode::Char('j') => app.select_next(),
-        KeyCode::PageUp => app.page_up(),
-        KeyCode::PageDown => app.page_down(),
-        KeyCode::Home => app.set_selected(0),
-        KeyCode::End => app.set_selected(app.filtered_count().saturating_sub(1)),
-
-        // Scroll details view
-        KeyCode::Char('w') => app.scroll_details_up(),
-        KeyCode::Char('s') => app.scroll_details_down(),
-
-        // Scroll hex dump
-        KeyCode::Char('e') => app.scroll_hex_up(),
-        KeyCode::Char('d') => app.scroll_hex_down(),
-
-        _ => {}
+    if Quit.match_any(&key) {
+        app.quit()
+    } else if ApplyFilter.match_any(&key) {
+        app.enter_filter_mode()
+    } else if ClearFilter.match_any(&key) {
+        // Exits filter editing mode when Esc pressed outside filter mode, but saves current input
+        app.exit_filter_mode()
+    } else if PktUp.match_any(&key) {
+        app.select_previous()
+    } else if PktDown.match_any(&key) {
+        app.select_next()
+    } else if PktPageUp.match_any(&key) {
+        app.page_up()
+    } else if PktPageDown.match_any(&key) {
+        app.page_down()
+    } else if PktHome.match_any(&key) {
+        app.set_selected(0)
+    } else if PktEnd.match_any(&key) {
+        app.set_selected(app.filtered_count().saturating_sub(1))
+    } else if DtlUp.match_any(&key) {
+        app.scroll_details_up()
+    } else if DtlDown.match_any(&key) {
+        app.scroll_details_down()
+    } else if HexUp.match_any(&key) {
+        app.scroll_hex_up()
+    } else if HexDown.match_any(&key) {
+        app.scroll_hex_down()
     }
     true
 }

@@ -1,8 +1,8 @@
 //! UI rendering components.
 
-use super::{packet_info::PacketInfo, state::App};
+use super::{key_config::KeyEvent, packet_info::PacketInfo, state::App};
+use crossterm_keybind::KeyBindTrait;
 use ratatui::{
-    Frame,
     layout::{Constraint, Direction, Layout, Margin, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span, Text},
@@ -10,6 +10,7 @@ use ratatui::{
         Block, Borders, Paragraph, Row, Scrollbar, ScrollbarOrientation, ScrollbarState, Table,
         Wrap,
     },
+    Frame,
 };
 
 /// Render the main UI.
@@ -98,9 +99,17 @@ fn render_filter_input(frame: &mut Frame, app: &App, area: Rect) {
         };
 
         let title = if let Some(ref error) = app.filter_error {
-            format!("Filter (Error: {error}) - Press Enter to apply, Esc to clear")
+            format!(
+                "Filter (Error: {error}) - Press {} to apply, {} to clear",
+                KeyEvent::ApplyFilter.key_bindings_display(),
+                KeyEvent::ClearFilter.key_bindings_display()
+            )
         } else {
-            "Filter - Press Enter to apply, Esc to clear".to_string()
+            format!(
+                "Filter - Press {} to apply, {} to clear",
+                KeyEvent::ApplyFilter.key_bindings_display(),
+                KeyEvent::ClearFilter.key_bindings_display()
+            )
         };
 
         let input = Paragraph::new(app.filter_input.value()).style(style).block(
@@ -118,7 +127,11 @@ fn render_filter_input(frame: &mut Frame, app: &App, area: Rect) {
         frame.set_cursor_position((cursor_x, cursor_y));
     } else {
         // Filter applied but not editing: show current filter
-        let title = "Filter Active - Press Enter to edit, Esc to cancel";
+        let title = format!(
+            "Filter Active - Press {} to edit, {} to cancel",
+            KeyEvent::ApplyFilter.key_bindings_display(),
+            KeyEvent::ClearFilter.key_bindings_display()
+        );
 
         let input = Paragraph::new(app.filter_input.value())
             .style(Style::default().fg(Color::Cyan))
@@ -169,14 +182,26 @@ fn render_packet_list(frame: &mut Frame, app: &mut App, area: Rect) {
     // Build title - show filtered count when filter is active
     let title = if app.filter.is_some() {
         format!(
-            "Captured Packets ({}/{}) - ↑/↓, j/k, PgUp/PgDn, Home/End",
+            "Captured Packets ({}/{}) - {}/{}, {}/{}, {}/{}",
             app.filtered_count(),
-            app.all_packets.len()
+            app.all_packets.len(),
+            KeyEvent::PktUp.key_bindings_display(),
+            KeyEvent::PktDown.key_bindings_display(),
+            KeyEvent::PktPageUp.key_bindings_display(),
+            KeyEvent::PktPageDown.key_bindings_display(),
+            KeyEvent::PktHome.key_bindings_display(),
+            KeyEvent::PktEnd.key_bindings_display()
         )
     } else {
         format!(
-            "Captured Packets ({}) - ↑/↓, j/k, PgUp/PgDn, Home/End",
-            app.filtered_count()
+            "Captured Packets ({}) - {}/{}, {}/{}, {}/{}",
+            app.filtered_count(),
+            KeyEvent::PktUp.key_bindings_display(),
+            KeyEvent::PktDown.key_bindings_display(),
+            KeyEvent::PktPageUp.key_bindings_display(),
+            KeyEvent::PktPageDown.key_bindings_display(),
+            KeyEvent::PktHome.key_bindings_display(),
+            KeyEvent::PktEnd.key_bindings_display()
         )
     };
 
@@ -239,11 +264,16 @@ fn render_packet_details(frame: &mut Frame, app: &App, area: Rect) {
     };
 
     let total_lines = text.lines.len();
+    let title = format!(
+        "Packet Details ({}/{} to scroll)",
+        KeyEvent::DtlUp.key_bindings_display(),
+        KeyEvent::DtlDown.key_bindings_display(),
+    );
 
     let paragraph = Paragraph::new(text)
         .block(
             Block::default()
-                .title("Packet Details (w/s to scroll)")
+                .title(title)
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(Color::Cyan)),
         )
@@ -308,11 +338,16 @@ fn render_hex_dump(frame: &mut Frame, app: &App, area: Rect) {
     };
 
     let total_lines = text.lines.len();
+    let title = format!(
+        "Packet Bytes ({}/{} to scroll)",
+        KeyEvent::HexUp.key_bindings_display(),
+        KeyEvent::HexDown.key_bindings_display(),
+    );
 
     let paragraph = Paragraph::new(text)
         .block(
             Block::default()
-                .title("Packet Bytes (e/d to scroll)")
+                .title(title)
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(Color::Cyan)),
         )
@@ -406,21 +441,21 @@ fn render_help(frame: &mut Frame, area: Rect) {
         ),
         Span::styled(" | ", Style::default().fg(Color::DarkGray)),
         Span::styled(
-            "Enter",
+            KeyEvent::ApplyFilter.key_bindings_display(),
             Style::default()
                 .fg(Color::Green)
                 .add_modifier(Modifier::BOLD),
         ),
         Span::styled(" filter ", Style::default().fg(Color::DarkGray)),
         Span::styled(
-            "Esc",
+            KeyEvent::ClearFilter.key_bindings_display(),
             Style::default()
                 .fg(Color::Yellow)
                 .add_modifier(Modifier::BOLD),
         ),
         Span::styled(" clear ", Style::default().fg(Color::DarkGray)),
         Span::styled(
-            "q",
+            KeyEvent::Quit.key_bindings_display(),
             Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
         ),
         Span::styled(" quit", Style::default().fg(Color::DarkGray)),
