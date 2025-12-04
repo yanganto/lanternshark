@@ -37,8 +37,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let capture = Capturing::from_file(file)?;
             run(capture, None::<String>)?;
         }
-        SubCommands::Config(_) => {
-            println!("{}", KeyEvent::config_example());
+        SubCommands::Config(config) => {
+            if let Some(path) = config.path {
+                KeyEvent::to_toml_example(path)?;
+            } else {
+                println!("{}", KeyEvent::toml_example());
+            }
         }
     }
     Ok(())

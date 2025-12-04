@@ -54,7 +54,11 @@ pub struct Load {
     pub file: String,
 }
 
-/// Show key config exmaple
+/// Show or save key config exmaple
 #[derive(FromArgs, PartialEq, Debug)]
 #[argh(subcommand, name = "key-config-example")]
-pub struct Config {}
+pub struct Config {
+    /// the file to save config example
+    #[argh(positional)]
+    pub path: Option<PathBuf>,
+}

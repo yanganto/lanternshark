@@ -136,9 +136,9 @@ dependencies = [
 
 [[package]]
 name = "crossterm-keybind"
-version = "0.0.2"
+version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e1ed2722fd6813029f648667b88bbc4e27e2eaffdfd61f4bc4aa8d50766fa87"
+checksum = "191ed30e6cafbf2bd2c2425af2810b2848ecee3c55a89d35c573553f0228851b"
 dependencies = [
  "crossterm",
  "crossterm-keybind-derive",
@@ -151,9 +151,9 @@ dependencies = [
 
 [[package]]
 name = "crossterm-keybind-derive"
-version = "0.0.2"
+version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c05bd6eb8290a11c68d1e83f41febcf13d722828be755af907816905a6818ba"
+checksum = "30ad5ad36603c89dc11050732670af306632e4e263c3035c8dafca264cae30f8"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -826,18 +826,18 @@ dependencies = [
 
 [[package]]
 name = "toml-example"
-version = "0.16.0"
+version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b7332031a66827faae66e385783b7c54fe314cd83f9a063fa82a7f8780afa6cc"
+checksum = "dca6a376a40d4d0a1bd81244f08825514667a258dda16dd7fb5a4950641d852c"
 dependencies = [
  "toml-example-derive",
 ]
 
 [[package]]
 name = "toml-example-derive"
-version = "0.16.0"
+version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7b137124f677aa7d2ae5c8ec9bf4c283bd567f821ae42a5afce3ac5c77399ce"
+checksum = "23ecc5b92ff031efc78ed404e9be2c840eb2bb6dade288d890c76008058ac40b"
 dependencies = [
  "proc-macro-error2",
  "proc-macro2",
