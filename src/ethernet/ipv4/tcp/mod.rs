@@ -4,6 +4,7 @@
 pub mod http;
 
 use super::{PacketDetail, ParseIpv4Error, Protocol};
+use crate::ethernet::lightway;
 use http::{HttpPacket, ParseHttpError};
 use std::fmt;
 
@@ -44,6 +45,8 @@ pub struct TcpPacket<'a> {
 pub enum TcpPacketInner<'a> {
     /// HTTP packet.
     Http(HttpPacket<'a>),
+    /// Lightway packet.
+    Lightway(lightway::LightwayPacket<'a>),
     /// Unknown or unsupported inner packet type.
     Unknown(UnknownTcpPacket<'a>),
 }
@@ -86,6 +89,8 @@ pub enum ParseTcpError {
     InvalidDataOffset,
     /// Error parsing inner HTTP packet.
     ParseHttpError(ParseHttpError),
+    /// Error parsing inner Lightway packet.
+    ParseLightwayError(lightway::ParseLightwayError),
 }
 
 impl From<ParseTcpError> for ParseIpv4Error {
@@ -141,6 +146,10 @@ impl<'a> TcpPacket<'a> {
                 Ok(http) => TcpPacketInner::Http(http),
                 Err(e) => return Err(ParseTcpError::ParseHttpError(e)),
             }
+        } else if src_port == lightway::port() || dest_port == lightway::port() {
+            lightway::LightwayPacket::new(data, true)
+                .map(TcpPacketInner::Lightway)
+                .map_err(ParseTcpError::ParseLightwayError)?
         } else {
             TcpPacketInner::Unknown(UnknownTcpPacket { data })
         };
@@ -242,8 +251,17 @@ impl PacketDetail for TcpPacket<'_> {
     fn inner(&self) -> Option<&dyn PacketDetail> {
         match &self.inner {
             TcpPacketInner::Http(http) => Some(http),
+            TcpPacketInner::Lightway(lightway) => Some(lightway),
             TcpPacketInner::Unknown(_) => None,
         }
+    }
+
+    fn sport(&self) -> Option<u16> {
+        Some(self.src_port)
+    }
+
+    fn dport(&self) -> Option<u16> {
+        Some(self.dest_port)
     }
 }
 

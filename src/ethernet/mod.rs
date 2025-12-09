@@ -1,6 +1,7 @@
 //! Ethernet packet parsing.
 
 pub mod arp;
+pub mod lightway;
 pub mod ipv4;
 pub mod ipv6;
 mod packet_detail;

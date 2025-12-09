@@ -112,22 +112,32 @@ impl PacketInfo {
 
     /// Get source and destination addresses from the protocol chain.
     /// Traverses the entire chain and returns the last layer with meaningful addresses.
-    /// Prefers network layer (IPv4/IPv6) addresses over link layer (Ethernet MAC) addresses.
+    /// Prefers in following orders
+    /// 1. Transport Layer: IP addresses with service ports
+    /// 2. Network layer: IP addresses 
+    /// 3. Link layer: Mac addresses 
     fn get_addresses(packet: &EthernetPacket) -> (String, String) {
         let mut current: Option<&dyn PacketDetail> = Some(packet);
         let mut last_valid_addresses: Option<(String, String)> = None;
+        let mut last_valid_ports: Option<(u16, u16)> = None;
 
         while let Some(protocol) = current {
             // Check if this protocol has addresses
             if let (Some(source), Some(destination)) = (protocol.source(), protocol.destination()) {
                 last_valid_addresses = Some((source, destination));
             }
-
+            if let (Some(sport), Some(dport)) = (protocol.sport(), protocol.dport()) && last_valid_ports.is_none(){
+                last_valid_ports = Some((sport, dport));
+            }
             current = protocol.inner();
         }
 
-        // Return the last valid addresses found, or fallback to Ethernet MAC addresses
-        last_valid_addresses
-            .unwrap_or_else(|| (packet.source.to_string(), packet.destination.to_string()))
+        match (last_valid_ports, last_valid_addresses) {
+            (Some((sport, dport)), Some((source, destination))) => {
+                (format!("{source:}:{sport}"), format!("{destination:}:{dport}"))
+            },
+            (None, Some((source, destination))) => (source, destination),
+            _ => (packet.source.to_string(), packet.destination.to_string())
+        }
     }
 }
