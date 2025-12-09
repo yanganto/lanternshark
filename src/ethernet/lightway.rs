@@ -1,6 +1,6 @@
 //! Lightway packet parsing.
 use std::sync::atomic::{AtomicU16, Ordering};
-use crate::{ethernet::{PacketDetail, ipv4::udp::ParseUdpError}};
+use crate::{ethernet::{PacketDetail, ipv4::{tcp::ParseTcpError, udp::ParseUdpError}}};
 
 static mut PORT: AtomicU16 = AtomicU16::new(27690);
 
@@ -65,6 +65,12 @@ pub enum ParseLightwayError {
 }
 
 impl From<ParseLightwayError> for ParseUdpError {
+    fn from(err: ParseLightwayError) -> Self {
+        Self::ParseLightwayError(err)
+    }
+}
+
+impl From<ParseLightwayError> for ParseTcpError {
     fn from(err: ParseLightwayError) -> Self {
         Self::ParseLightwayError(err)
     }
