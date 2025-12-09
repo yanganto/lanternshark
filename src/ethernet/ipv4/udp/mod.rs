@@ -3,6 +3,7 @@
 pub mod dns;
 
 use super::{PacketDetail, ParseIpv4Error, Protocol};
+use crate::ethernet::lightway;
 use dns::{DnsPacket, ParseDnsError};
 use std::fmt;
 
@@ -30,6 +31,8 @@ pub struct UdpPacket<'a> {
 pub enum UdpPacketInner<'a> {
     /// DNS packet.
     Dns(DnsPacket<'a>),
+    /// Lightway packet.
+    Lightway(lightway::LightwayPacket<'a>),
     /// Unknown or unsupported inner packet type.
     Unknown(UnknownUdpPacket<'a>),
 }
@@ -48,6 +51,8 @@ pub enum ParseUdpError {
     PacketTooShort,
     /// Error parsing inner DNS packet.
     ParseDnsError(ParseDnsError),
+    /// Error parsing inner Lightway packet.
+    ParseLightwayError(lightway::ParseLightwayError),
 }
 
 impl From<ParseUdpError> for ParseIpv4Error {
@@ -81,6 +86,10 @@ impl<'a> UdpPacket<'a> {
             DnsPacket::new(data, true)
                 .map(UdpPacketInner::Dns)
                 .map_err(ParseUdpError::ParseDnsError)?
+        } else if src_port == lightway::port() || dest_port == lightway::port() {
+            lightway::LightwayPacket::new(data, false)
+                .map(UdpPacketInner::Lightway)
+                .map_err(ParseUdpError::ParseLightwayError)?
         } else {
             UdpPacketInner::Unknown(UnknownUdpPacket { data })
         };
@@ -153,6 +162,7 @@ impl PacketDetail for UdpPacket<'_> {
     fn inner(&self) -> Option<&dyn PacketDetail> {
         match &self.inner {
             UdpPacketInner::Dns(dns) => Some(dns),
+            UdpPacketInner::Lightway(lightway) => Some(lightway),
             UdpPacketInner::Unknown(_) => None,
         }
     }
