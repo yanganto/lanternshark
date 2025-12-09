@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11-small";
 
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
@@ -38,11 +38,10 @@
           nativeBuildInputs = with pkgs; [ 
             pkg-config
           ];
-          # buildFeatures = [ "cli" ];
           inherit (manifest.package) name version;
           LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath buildInputs;
           src = pkgs.lib.cleanSource ./.;
-          cargoHash = "sha256-r8NL8Pm8R0iipOJplrRDX3RqrNkebKzWoHPlCrk7eYs=";
+          cargoHash = "sha256-dGndkXzkEca4WPgcXBlc4B7s/R/5APaivX+kabNQfCI=";
         };
       }
     );
