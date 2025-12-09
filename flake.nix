@@ -29,9 +29,6 @@
             rust-bin.stable.latest.default
             libpcap
           ];
-          # nativeBuildInputs = with pkgs; [ 
-          #   pkg-config
-          # ];
         });
         packages.default = pkgs.rustPlatform.buildRustPackage rec {
           buildInputs = with pkgs; [ 
@@ -41,11 +38,11 @@
           nativeBuildInputs = with pkgs; [ 
             pkg-config
           ];
-          buildFeatures = [ "cli" ];
+          # buildFeatures = [ "cli" ];
           inherit (manifest.package) name version;
           LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath buildInputs;
           src = pkgs.lib.cleanSource ./.;
-          cargoHash = "sha256-Ro9yKh+JigQQldyH/iO7ZtrJOyAEN7GLZBvavlBbP4c=";
+          cargoHash = "sha256-r8NL8Pm8R0iipOJplrRDX3RqrNkebKzWoHPlCrk7eYs=";
         };
       }
     );
