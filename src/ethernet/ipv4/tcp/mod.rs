@@ -245,6 +245,14 @@ impl PacketDetail for TcpPacket<'_> {
             TcpPacketInner::Unknown(_) => None,
         }
     }
+
+    fn sport(&self) -> Option<u16> {
+        Some(self.src_port)
+    }
+
+    fn dport(&self) -> Option<u16> {
+        Some(self.dest_port)
+    }
 }
 
 impl From<u8> for TcpPacketFlags {

@@ -156,4 +156,12 @@ impl PacketDetail for UdpPacket<'_> {
             UdpPacketInner::Unknown(_) => None,
         }
     }
+
+    fn sport(&self) -> Option<u16> {
+        Some(self.src_port)
+    }
+
+    fn dport(&self) -> Option<u16> {
+        Some(self.dest_port)
+    }
 }

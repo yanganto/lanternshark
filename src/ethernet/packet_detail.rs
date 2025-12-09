@@ -25,9 +25,21 @@ pub trait PacketDetail {
         None
     }
 
+    /// Get the source port as u16 (if applicable).
+    /// Returns None if the packet type doesn't have a source port.
+    fn sport(&self) -> Option<u16> {
+        None
+    }
+
     /// Get the destination address as a string (if applicable).
     /// Returns None if the packet type doesn't have a destination address.
     fn destination(&self) -> Option<String> {
+        None
+    }
+
+    /// Get the destination port as u16 (if applicable).
+    /// Returns None if the packet type doesn't have a destination port.
+    fn dport(&self) -> Option<u16> {
         None
     }
 
