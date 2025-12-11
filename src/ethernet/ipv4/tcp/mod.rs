@@ -146,10 +146,11 @@ impl<'a> TcpPacket<'a> {
                 Ok(http) => TcpPacketInner::Http(http),
                 Err(e) => return Err(ParseTcpError::ParseHttpError(e)),
             }
-        } else if src_port == lightway::port() || dest_port == lightway::port() {
-            lightway::LightwayPacket::new(data, true)
-                .map(TcpPacketInner::Lightway)
-                .map_err(ParseTcpError::ParseLightwayError)?
+        // TODO Fix Lightway TCP
+        // } else if src_port == lightway::port() || dest_port == lightway::port() {
+        //     lightway::LightwayPacket::new(data, true)
+        //         .map(TcpPacketInner::Lightway)
+        //         .map_err(ParseTcpError::ParseLightwayError)?
         } else {
             TcpPacketInner::Unknown(UnknownTcpPacket { data })
         };
