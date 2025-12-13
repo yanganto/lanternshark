@@ -24,7 +24,7 @@ pub enum SubCommands {
     List(List),
     /// Load and inspect packets from a file.
     Load(Load),
-    /// Show key config exmaple
+    /// Show key config example
     Config(Config),
 }
 
@@ -54,7 +54,7 @@ pub struct Load {
     pub file: String,
 }
 
-/// Show or save key config exmaple
+/// Show or save key config example
 #[derive(FromArgs, PartialEq, Debug)]
 #[argh(subcommand, name = "key-config-example")]
 pub struct Config {

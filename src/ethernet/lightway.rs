@@ -18,7 +18,7 @@ pub fn port() -> u16 {
     }
 }
 
-/// The tranport layer protocol Lightway runs
+/// The transport layer protocol Lightway runs
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LightwayMode {
     /// Run Lightway over UDP
@@ -30,7 +30,7 @@ pub enum LightwayMode {
 /// A lightway packet.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LightwayPacket<'a> {
-    /// The tranport layer where lightway runs
+    /// The transport layer where lightway runs
     pub mode: LightwayMode,
 
     /// Major version
